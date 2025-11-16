@@ -1,0 +1,54 @@
+<mat-card class="devices-card">
+  <mat-card-title class="devices-header">
+    <span>{{ pageTitle }}</span>
+
+    <span class="devices-header-actions">
+      <!-- későbbi filter input helye -->
+      <span class="devices-filter-placeholder">Filter placeholder</span>
+
+      <button mat-raised-button color="primary">
+        <mat-icon>add</mat-icon>
+        Add device
+      </button>
+    </span>
+  </mat-card-title>
+
+  <mat-card-content>
+    <table class="devices-table">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Device</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Last seen</th>
+        <th>Company</th>
+        <th>Location</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (dev of devices(); track dev.id) {
+          <tr>
+            <td>{{ dev.id }}</td>
+            <td>{{ dev.name }}</td>
+            <td>{{ dev.type }}</td>
+            <td>
+              <span class="status-pill status-{{ dev.status }}">
+                {{ dev.status }}
+              </span>
+            </td>
+            <td>{{ dev.lastSeen }}</td>
+            <td>{{ dev.company }}</td>
+            <td>{{ dev.location }}</td>
+            <td class="devices-actions-cell">
+              <a [routerLink]="['/devices', dev.id]" class="details-link">
+                Details
+              </a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </mat-card-content>
+</mat-card>

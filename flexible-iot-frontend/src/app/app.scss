@@ -1,0 +1,19 @@
+.app-shell {
+  height: 100vh;
+}
+
+/* alap: desktop */
+mat-sidenav {
+  width: 240px;
+}
+
+/* mobil breakpoint */
+@media (max-width: 768px) {
+  mat-sidenav {
+    width: 0;         // vagy over mode
+  }
+
+  .app-content {
+    padding: 8px;
+  }
+}

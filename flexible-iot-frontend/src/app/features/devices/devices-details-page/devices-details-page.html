@@ -1,0 +1,81 @@
+<section class="details-header">
+  <h1>{{ pageTitle }}</h1>
+  <p class="subtitle">ID: {{ deviceId() }}</p>
+</section>
+
+<section class="details-grid">
+  <div class="left-column">
+    @let info = overview();
+    @if (info) {
+      <mat-card class="overview-card">
+        <mat-card-title>{{ info.name }}</mat-card-title>
+        <mat-card-content>
+          <div class="overview-row">
+            <span class="label">Type</span>
+            <span class="value">{{ info.type }}</span>
+          </div>
+          <div class="overview-row">
+            <span class="label">Status</span>
+            <span class="value">{{ info.status }}</span>
+          </div>
+          <div class="overview-row">
+            <span class="label">Company</span>
+            <span class="value">{{ info.company }}</span>
+          </div>
+          <div class="overview-row">
+            <span class="label">Location</span>
+            <span class="value">{{ info.location }}</span>
+          </div>
+          <div class="overview-row">
+            <span class="label">Firmware</span>
+            <span class="value">{{ info.firmwareVersion }}</span>
+          </div>
+          <div class="overview-row">
+            <span class="label">Registered</span>
+            <span class="value">{{ info.registeredAt }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="config-card">
+        <mat-card-title>Configuration</mat-card-title>
+        <mat-card-content>
+          <p>Configuration placeholder (REST-based settings later).</p>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+
+  <div class="right-column">
+    <mat-card class="live-card">
+      <mat-card-title>Live metrics</mat-card-title>
+      <mat-card-content>
+        <ul class="live-list">
+          @for (m of liveMetrics(); track m.id) {
+            <li class="live-item">
+              <div class="live-label">{{ m.label }}</div>
+              <div class="live-value">
+                {{ m.value }} {{ m.unit }}
+                <span class="live-updated">({{ m.updatedAt }})</span>
+              </div>
+            </li>
+          }
+        </ul>
+      </mat-card-content>
+    </mat-card>
+
+    @let hist = historySummary();
+    @if (hist) {
+      <mat-card class="history-card">
+        <mat-card-title>
+          {{ hist.metricLabel }} – {{ hist.timeWindowLabel }}
+        </mat-card-title>
+        <mat-card-content>
+          <div class="history-placeholder">
+            {{ hist.placeholderText }}
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+</section>

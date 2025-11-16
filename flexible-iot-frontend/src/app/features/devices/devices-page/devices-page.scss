@@ -1,0 +1,71 @@
+.devices-card {
+  width: 100%;
+}
+
+.devices-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .devices-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .devices-filter-placeholder {
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+.devices-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th,
+  td {
+    padding: 6px 4px;
+    text-align: left;
+  }
+
+  th {
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  tr + tr td {
+    border-top: 1px solid #f3f4f6;
+  }
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  text-transform: capitalize;
+
+  &.status-online {
+    background-color: #dcfce7;
+    color: #166534;
+  }
+
+  &.status-offline {
+    background-color: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+.devices-actions-cell {
+  text-align: right;
+
+  .details-link {
+    font-size: 13px;
+    text-decoration: none;
+    color: #2563eb;
+  }
+}

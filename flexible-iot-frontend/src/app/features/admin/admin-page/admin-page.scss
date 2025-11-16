@@ -1,0 +1,64 @@
+.admin-header {
+  margin-bottom: 16px;
+
+  h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+  }
+
+  .subtitle {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto auto;
+  gap: 16px;
+}
+
+.admin-card {
+  width: 100%;
+}
+
+.admin-card-full {
+  grid-column: 1 / span 2;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th,
+  td {
+    padding: 6px 4px;
+    text-align: left;
+  }
+
+  th {
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  tr + tr td {
+    border-top: 1px solid #f3f4f6;
+  }
+}

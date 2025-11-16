@@ -1,0 +1,123 @@
+<section class="admin-header">
+  <h1>{{ pageTitle }}</h1>
+  <p class="subtitle">
+    Felhasználók, szervezetek és eszköz hozzárendelések kezelése.
+  </p>
+</section>
+
+<section class="admin-grid">
+  <!-- 1. Users -->
+  <mat-card class="admin-card">
+    <mat-card-title class="card-header">
+      <span>Users</span>
+      <button mat-stroked-button color="primary">
+        <mat-icon>person_add</mat-icon>
+        Add user
+      </button>
+    </mat-card-title>
+
+    <mat-card-content>
+      <table class="admin-table">
+        <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Type</th>
+          <th>Organization</th>
+          <th>Role</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (user of users(); track user.id) {
+            <tr>
+              <td>{{ user.name }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.type }}</td>
+              <td>{{ user.organizationName || '—' }}</td>
+              <td>{{ user.role }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- 2. Organizations -->
+  <mat-card class="admin-card">
+    <mat-card-title class="card-header">
+      <span>Organizations</span>
+      <button mat-stroked-button color="primary">
+        <mat-icon>domain_add</mat-icon>
+        Add organization
+      </button>
+    </mat-card-title>
+
+    <mat-card-content>
+      <table class="admin-table">
+        <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Type</th>
+          <th>Organization</th>
+          <th>Role</th>
+          <th></th> <!-- actions -->
+        </tr>
+        </thead>
+        <tbody>
+          @for (user of users(); track user.id) {
+            <tr>
+              <td>{{ user.name }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.type }}</td>
+              <td>{{ user.organizationName || '—' }}</td>
+              <td>{{ user.role }}</td>
+              <td class="actions-cell">
+                <button mat-icon-button>
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button>
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- 3. Assignments -->
+  <mat-card class="admin-card admin-card-full">
+    <mat-card-title class="card-header">
+      <span>Assignments</span>
+      <button mat-stroked-button color="primary">
+        <mat-icon>link</mat-icon>
+        Assign device
+      </button>
+    </mat-card-title>
+
+    <mat-card-content>
+      <table class="admin-table">
+        <thead>
+        <tr>
+          <th>User</th>
+          <th>Organization</th>
+          <th>Device</th>
+          <th>Role</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (ass of assignments(); track ass.id) {
+            <tr>
+              <td>{{ ass.userName }}</td>
+              <td>{{ ass.organizationName }}</td>
+              <td>{{ ass.deviceName }}</td>
+              <td>{{ ass.role }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</section>
