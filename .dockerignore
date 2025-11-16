@@ -1,0 +1,12 @@
+node_modules
+dist
+
+flexible-iot-frontend/node_modules
+flexible-iot-frontend/dist
+
+.git
+.gitignore
+npm-debug.log
+.angular
+Dockerfile
+docker-compose.yml
