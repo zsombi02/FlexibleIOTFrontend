@@ -1,7 +1,7 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://localhost:5000/api',       // backend dev URL – PLACEHOLDER
+  apiBaseUrl: 'https://localhost:5001',       // backend dev URL – PLACEHOLDER
   signalR: {
-    telemetryHubUrl: 'http://localhost:5000/hubs/telemetry',  // PLACEHOLDER
+    telemetryHubUrl: 'https://localhost:5001/hub',  // PLACEHOLDER
   }
 };

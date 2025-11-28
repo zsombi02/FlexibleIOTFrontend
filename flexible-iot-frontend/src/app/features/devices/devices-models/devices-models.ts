@@ -34,3 +34,33 @@ export interface DeviceHistorySummary {
   timeWindowLabel: string;
   placeholderText: string;
 }
+
+///////////////////////////////
+export interface DeviceItem {
+  id: number;
+  name: string;
+  topic: string;
+  type: string;
+  company: string;
+  ownerUserName?: string;
+  timeInterval: number;
+}
+
+// Backend: CreateDeviceDto
+export interface CreateDeviceRequest {
+  name: string;
+  topic: string;
+  type: string;
+  companyName?: string;
+  ownerUserName?: string;
+  timeInterval: number;
+  description?: string;
+}
+
+export interface TelemetryData {
+  id?: number;
+  name?: string;
+  type?: string;
+  value: any;
+  timeStamp: string | Date;
+}

@@ -1,26 +1,28 @@
 export type AdminUserType = 'company' | 'individual';
 
+// Backend: UserListItemDto
 export interface AdminUserItem {
   id: string;
   name: string;
   email: string;
-  type: AdminUserType;      // 'company' = céges user, 'individual' = egyéni
+  type: AdminUserType;
   organizationName?: string;
-  role: string;             // pl. 'Admin', 'Viewer'
+  role: string;
 }
 
+// Backend: CompanyDto
 export interface AdminOrganizationItem {
-  id: string;
+  id: number;
   name: string;
-  contactPerson: string;
-  userCount: number;
-  deviceCount: number;
+  // A backend jelenleg nem ad vissza countokat, ezeket opcionálissá tesszük
+  userCount?: number;
+  deviceCount?: number;
 }
 
-export interface AdminAssignmentItem {
-  id: string;
-  userName: string;
-  organizationName: string;
-  deviceName: string;
-  role: string;             // pl. 'Owner', 'Viewer'
+// Backend: RegisterUserDto (User létrehozáshoz)
+export interface CreateUserRequest {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role: string;
 }

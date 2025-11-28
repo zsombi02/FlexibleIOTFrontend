@@ -1,10 +1,11 @@
-import { Component, signal } from '@angular/core';
-import {RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
+import {Component, computed, inject, signal} from '@angular/core';
+import {Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatListModule} from '@angular/material/list';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
+import {AuthService} from './features/auth/auth-api/auth-service';
 
 
 @Component({
@@ -23,7 +24,15 @@ import {MatIconModule} from '@angular/material/icon';
   styleUrl: './app.scss'
 })
 class App {
+  // Injektáljuk a service-t és a routert
+  protected authService = inject(AuthService);
+  private router = inject(Router);
+
   protected readonly title = signal('flexible-iot-frontend');
+
+  // Computed signal: automatikusan frissül, ha a userToken változik a service-ben
+  protected isLoggedIn = computed(() => !!this.authService.userToken());
+
   readonly navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
     { path: '/devices', label: 'Devices', icon: 'devices' },
@@ -31,6 +40,11 @@ class App {
     { path: '/admin', label: 'Admin', icon: 'admin_panel_settings' },
     { path: '/settings', label: 'Settings', icon: 'settings' }
   ];
+
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
 }
 
-export default App
+export default App;

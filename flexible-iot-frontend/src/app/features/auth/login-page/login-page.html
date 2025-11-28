@@ -1,0 +1,31 @@
+<div class="login-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Bejelentkezés</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form (ngSubmit)="onSubmit()">
+
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput [(ngModel)]="model.email" name="email" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="full-width">
+          <mat-label>Jelszó</mat-label>
+          <input matInput type="password" [(ngModel)]="model.password" name="password" required>
+        </mat-form-field>
+
+        @if (errorMessage()) {
+          <div class="error-msg">{{ errorMessage() }}</div>
+        }
+
+        <div class="actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">
+            @if(isLoading()) { Belépés... } @else { Belépés }
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

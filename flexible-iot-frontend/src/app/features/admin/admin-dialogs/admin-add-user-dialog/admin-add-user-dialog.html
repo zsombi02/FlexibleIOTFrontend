@@ -1,0 +1,35 @@
+<h2 mat-dialog-title>Új felhasználó</h2>
+<mat-dialog-content>
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input matInput [(ngModel)]="data.email">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Jelszó</mat-label>
+      <input matInput type="password" [(ngModel)]="data.password">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Jelszó megerősítése</mat-label>
+      <input matInput type="password" [(ngModel)]="data.confirmPassword">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Role</mat-label>
+      <mat-select [(ngModel)]="data.role">
+        <mat-option value="Operator">Operator</mat-option>
+        <mat-option value="Manager">Manager</mat-option>
+        <mat-option value="Admin">Admin</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Mégse</button>
+  <button mat-raised-button color="primary" [mat-dialog-close]="data">Létrehozás</button>
+</mat-dialog-actions>

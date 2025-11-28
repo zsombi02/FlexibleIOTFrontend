@@ -142,3 +142,34 @@
     border-top: 1px solid #e5e7eb;
   }
 }
+.telemetry-big-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  font-size: 4rem;
+  font-weight: bold;
+  color: #3f51b5;
+  background: #f5f7fa;
+  border-radius: 12px;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: gray;
+  font-style: italic;
+}
+
+.feed-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.feed-time {
+  font-size: 0.8rem;
+  color: #888;
+}

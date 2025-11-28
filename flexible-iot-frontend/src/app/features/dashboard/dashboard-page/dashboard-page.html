@@ -1,22 +1,5 @@
-<section class="dashboard-header">
-  <h1>{{ pageTitle }}</h1>
-  <p class="subtitle">{{ appTitle }}</p>
-</section>
-
-<section class="dashboard-header">
-  <h1>Flex IoT – {{ pageTitle }}</h1>
-
-  <div class="header-right">
-    <span class="status-dot"></span>
-    <span class="status-label">{{ connectionStatus() }}</span>
-
-    <span class="time-window">{{ timeWindowLabel() }}</span>
-  </div>
-</section>
-
 <section class="dashboard-grid">
 
-  <!-- Bal oszlop: stat kártyák -->
   <div class="left-column">
     @for (card of statCards(); track card.id) {
       <mat-card class="stat-card">
@@ -29,7 +12,6 @@
     }
   </div>
 
-  <!-- Középső oszlop: telemetria grafikon placeholder -->
   <div class="center-column">
     @let chart = telemetryCard();
     @if (chart) {
@@ -42,60 +24,45 @@
               <span class="metric-label">{{ chart.selectedMetricLabel }}</span>
               <span class="metric-pill">{{ chart.selectedMetricKey }}</span>
             </div>
-            <div class="mode-pill">{{ chart.modeLabel }}</div>
+            <div class="mode-pill">LIVE</div>
           </div>
 
-          <div class="telemetry-placeholder">
+          <div class="telemetry-big-number">
             {{ chart.placeholderText }}
           </div>
+        </mat-card-content>
+      </mat-card>
+    } @else {
+      <mat-card class="telemetry-card">
+        <mat-card-content class="empty-state">
+          Várakozás adatokra...
         </mat-card-content>
       </mat-card>
     }
   </div>
 
-  <!-- Jobb oszlop: élő feed + top eszközök -->
   <div class="right-column">
     <mat-card class="feed-card">
-      <mat-card-title>Élő feed</mat-card-title>
+      <mat-card-title>Élő feed (Szűrt)</mat-card-title>
       <mat-card-content>
         <ul class="feed-list">
           @for (item of liveFeedItems(); track item.id) {
             <li class="feed-item">
-              <div class="feed-device">
-                {{ item.deviceName }} · {{ item.metricName }}
+              <div class="feed-header">
+                <span class="feed-device">{{ item.deviceName }}</span>
+                <span class="feed-time">{{ item.time }}</span>
               </div>
-              <div class="feed-value">
-                {{ item.value }} {{ item.unit }} — {{ item.time }}
+              <div class="feed-detail">
+                {{ item.metricName }}: <strong>{{ item.value }} {{ item.unit }}</strong>
               </div>
             </li>
+          } @empty {
+            <li class="feed-item" style="color: gray">Nincs beérkező adat az engedélyezett eszközökről.</li>
           }
         </ul>
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="top-devices-card">
-      <mat-card-title>Top eszközök (utóbbi 1h)</mat-card-title>
-      <mat-card-content>
-        <table class="top-devices-table">
-          <thead>
-          <tr>
-            <th>Eszköz</th>
-            <th>Cég</th>
-            <th>Üzenetek</th>
-          </tr>
-          </thead>
-          <tbody>
-            @for (device of topDevices(); track device.id) {
-              <tr>
-                <td>{{ device.deviceName }}</td>
-                <td>{{ device.company }}</td>
-                <td>{{ device.messagesCount }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </mat-card-content>
-    </mat-card>
   </div>
 
 </section>

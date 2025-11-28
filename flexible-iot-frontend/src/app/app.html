@@ -20,10 +20,24 @@
   <mat-sidenav-content>
     <mat-toolbar color="primary">
       <span>{{ title() }}</span>
-      <span class="spacer"></span>
-      <!-- ide jöhet majd user info, logout gomb, stb. -->
-    </mat-toolbar>
+      <span class="spacer" style="flex: 1 1 auto;"></span>
 
+      @if (isLoggedIn()) {
+        <span style="display: flex; align-items: center; gap: 8px; margin-right: 16px; font-size: 0.9rem;">
+          <mat-icon>account_circle</mat-icon>
+          Hello, <strong>{{ authService.userName() }}</strong>!
+        </span>
+
+        <button mat-button (click)="logout()">
+          <mat-icon>logout</mat-icon> Kijelentkezés
+        </button>
+      } @else {
+        <a mat-button routerLink="/login">
+          <mat-icon>login</mat-icon> Bejelentkezés
+        </a>
+      }
+
+    </mat-toolbar>
     <main class="app-content">
       <router-outlet></router-outlet>
     </main>
