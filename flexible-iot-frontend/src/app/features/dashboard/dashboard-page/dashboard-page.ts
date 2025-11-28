@@ -1,48 +1,62 @@
 import {Component, computed, effect, inject, OnInit, signal} from '@angular/core';
 import {BaseComponent} from '../../../core/base/base';
-import {
-  DashboardLiveFeedItem,
-  DashboardStatCard,
-  DashboardTelemetryCard,
-  DashboardTopDevice
-} from '../dashboard-models/dashboard-models';
+import {DashboardLiveFeedItem, DashboardStatCard} from '../dashboard-models/dashboard-models';
 import {MatCardModule} from '@angular/material/card';
+import {MatIconModule} from '@angular/material/icon'; // Ikonokhoz
 import {SignalrTelemetryService} from '../../../core/realtime/signalr-telemetry-service';
 import {DevicesService} from '../../devices/devices-api/devices-service';
 import {AuthService} from '../../auth/auth-api/auth-service';
 import {DeviceItem} from '../../devices/devices-models/devices-models';
-
+import {CommonModule} from '@angular/common';
+import {MatTabsModule} from '@angular/material/tabs';
+import {EChartsOption} from 'echarts';
+import {NgxEchartsDirective} from 'ngx-echarts';
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [MatCardModule],
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatTabsModule,
+    MatIconModule,
+    NgxEchartsDirective
+  ],
   templateUrl: './dashboard-page.html',
   styleUrl: './dashboard-page.scss',
 })
 export class DashboardPage extends BaseComponent implements OnInit {
   pageTitle = 'Dashboard';
 
-  // Services
   private telemetry = inject(SignalrTelemetryService);
   private deviceApi = inject(DevicesService);
   private authService = inject(AuthService);
 
-  // Status Signals
   connectionStatus = this.telemetry.connectionStatus;
-  timeWindowLabel = signal('Valós idejű');
 
-  // Data Signals
-  allDevices = signal<DeviceItem[]>([]);      // Nyers lista a backendről
-  myDevices = signal<DeviceItem[]>([]);       // Jogosultság szerint szűrt lista
-
-  // UI Signals
-  statCards = signal<DashboardStatCard[]>([]);
-  telemetryCard = signal<DashboardTelemetryCard | null>(null);
+  // Adatok
+  myDevices = signal<DeviceItem[]>([]);
   liveFeedItems = signal<DashboardLiveFeedItem[]>([]);
-  topDevices = signal<DashboardTopDevice[]>([]); // Ezt egyelőre hagyjuk placeholderen
+  statCards = signal<DashboardStatCard[]>([]);
 
-  // Lookup Map: ID -> Device (hogy a SignalR ID-ból nevet tudjunk varázsolni)
-  private deviceMap = computed(() => {
+  systemInfoCards = signal([
+    { title: 'CPU Terhelés', value: '42%', icon: 'memory', color: '#3f51b5' },
+    { title: 'Memória', value: '1.2 GB', icon: 'storage', color: '#e91e63' },
+    { title: 'Hálózat', value: '24 Mb/s', icon: 'router', color: '#009688' },
+    { title: 'Szerver fut', value: '14n 2ó', icon: 'schedule', color: '#ff9800' }
+  ]);
+
+  // Chart logika
+  selectedDeviceId = signal<number | null>(null);
+  chartOption = signal<EChartsOption | null>(null);
+
+  private deviceHistoryMap = new Map<number, { name: string, value: [string, number] }[]>();
+
+  // LIVE DOT LOGIKA: Map<DeviceId, LastTimestamp>
+  // Tároljuk, mikor jött utoljára adat az eszköztől
+  private lastSeenMap = signal<Map<number, number>>(new Map());
+
+  private deviceLookup = computed(() => {
     const map = new Map<number, DeviceItem>();
     this.myDevices().forEach(d => map.set(d.id, d));
     return map;
@@ -51,169 +65,177 @@ export class DashboardPage extends BaseComponent implements OnInit {
   constructor() {
     super();
 
-    // 1. Live Feed Effect
     effect(() => {
       const rawFeed = this.telemetry.telemetryFeed();
-      const lookup = this.deviceMap();
-
+      const lookup = this.deviceLookup();
       const mappedFeed: DashboardLiveFeedItem[] = [];
-      let lastTelemetryTime = 'N/A';
 
-      // Végigmegyünk a bejövő adatokon
-      for (const t of rawFeed) {
-        const devId = t.id || 0;
-
+      // Feldolgozzuk a legfrissebb adatot a chart-hoz és a Live Dot-hoz
+      if (rawFeed.length > 0) {
+        const latest = rawFeed[0];
+        const devId = latest.id || 0;
         const device = lookup.get(devId);
 
         if (device) {
-          mappedFeed.push({
-            id: `feed-${t.timeStamp}-${devId}`,
-            deviceName: device.name,  // Kicseréljük az ID-t a névre!
-            metricName: device.type,  // Pl. "pm25"
-            value: t.value?.toString() ?? '0',
-            unit: this.getUnitByType(device.type), // Helper fv.
-            time: new Date(t.timeStamp).toLocaleTimeString()
-          });
+          // 1. Chart history frissítése
+          this.addToHistory(devId, latest.timeStamp, Number(latest.value));
 
-          // Az első elem a legfrissebb
-          if (lastTelemetryTime === 'N/A') {
-            lastTelemetryTime = new Date(t.timeStamp).toLocaleTimeString();
+          // 2. LIVE DOT Frissítése: elmentjük a mostani időbélyeget
+          this.updateLastSeen(devId);
+
+          // 3. Ha ez a tab aktív, újrarajzoljuk a grafikont
+          if (this.selectedDeviceId() === devId) {
+            this.updateChartForDevice(devId);
           }
         }
       }
 
+      // Feed generálás (jobb oldali sáv)
+      for (const t of rawFeed) {
+        const dev = lookup.get(t.id || 0);
+        if (dev) {
+          mappedFeed.push({
+            id: `feed-${t.timeStamp}-${t.id}`,
+            deviceName: dev.name,
+            metricName: dev.type,
+            value: t.value?.toString() ?? '0',
+            unit: this.getUnitByType(dev.type),
+            time: new Date(t.timeStamp).toLocaleTimeString()
+          });
+        }
+      }
       this.liveFeedItems.set(mappedFeed);
-
-      // Frissítjük a stat kártyát is (Utolsó telemetria)
-      this.updateLastTelemetryStat(lastTelemetryTime);
-
-      // Frissítjük a grafikont is az új adatokkal
-      this.updateChart(mappedFeed);
+      this.updateStats();
     });
   }
 
   ngOnInit() {
     this.initData();
-    this.initSignalR();
+    this.telemetry.start().catch(err => console.error(err));
   }
 
-  private async initSignalR(): Promise<void> {
-    try {
-      await this.telemetry.start();
-    } catch (e) {
-      console.error(e);
-    }
+  // --- LIVE DOT HELPER ---
+  // A template hívja meg: akkor "élő", ha az elmúlt 10 másodpercben jött adat
+  isDeviceLive(devId: number): boolean {
+    const lastSeen = this.lastSeenMap().get(devId);
+    if (!lastSeen) return false;
+
+    // Ha 10 másodpercen belüli az adat, akkor "zöld"
+    return (Date.now() - lastSeen) < 10000;
+  }
+
+  private updateLastSeen(devId: number) {
+    // Frissítjük a Map-et új referenciával, hogy a Signal érzékelje a változást a template-ben
+    this.lastSeenMap.update(map => {
+      const newMap = new Map(map);
+      newMap.set(devId, Date.now());
+      return newMap;
+    });
   }
 
   private initData() {
-    // 1. Lekérjük az összes eszközt
     this.deviceApi.getAllDevices().subscribe({
       next: (devices) => {
-        this.allDevices.set(devices);
         this.filterDevicesByRole(devices);
-        this.updateStats(); // Statisztikák frissítése a lista alapján
+        // Alapból válasszuk ki az elsőt
+        if (this.myDevices().length > 0) {
+          this.selectedDeviceId.set(this.myDevices()[0].id);
+          this.updateChartForDevice(this.myDevices()[0].id);
+        }
       }
     });
   }
 
-  // --- SZŰRÉSI LOGIKA ---
+  onTabChange(index: number) {
+    const devices = this.myDevices();
+    if (devices[index]) {
+      const devId = devices[index].id;
+      this.selectedDeviceId.set(devId);
+      this.updateChartForDevice(devId);
+    }
+  }
+
+  private addToHistory(devId: number, time: string | Date, value: number) {
+    if (!this.deviceHistoryMap.has(devId)) {
+      this.deviceHistoryMap.set(devId, []);
+    }
+    const history = this.deviceHistoryMap.get(devId)!;
+    const timeStr = new Date(time).toLocaleTimeString();
+    history.push({ name: timeStr, value: [timeStr, value] });
+
+    // Max 50 pont
+    if (history.length > 50) history.shift();
+  }
+
+  private updateChartForDevice(devId: number) {
+    const data = this.deviceHistoryMap.get(devId) || [];
+    const device = this.deviceLookup().get(devId);
+    if (!device) return;
+
+    if (data.length === 0) {
+      this.chartOption.set(null);
+      return;
+    }
+
+    this.chartOption.set({
+      title: {
+        text: `${device.name} (${device.type})`,
+        left: 'center',
+        textStyle: { color: '#666', fontSize: 14 }
+      },
+      tooltip: {
+        trigger: 'axis',
+        formatter: (params: any) => {
+          const pt = params[0];
+          return `${pt.name} : ${pt.value[1]} ${this.getUnitByType(device.type)}`;
+        }
+      },
+      xAxis: { type: 'category', boundaryGap: false },
+      yAxis: { type: 'value', splitLine: { show: true, lineStyle: { type: 'dashed' } } },
+      series: [{
+        name: device.name,
+        type: 'line',
+        smooth: true,
+        symbol: 'none',
+        areaStyle: {
+          color: {
+            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [{ offset: 0, color: 'rgba(63, 81, 181, 0.4)' }, { offset: 1, color: 'rgba(63, 81, 181, 0)' }]
+          }
+        },
+        lineStyle: { width: 3, color: '#3f51b5' },
+        data: data
+      }],
+      animationDuration: 500
+    });
+  }
+
   private filterDevicesByRole(devices: DeviceItem[]) {
     const isManager = this.authService.hasRole('Manager');
     const isAdmin = this.authService.hasRole('Admin');
-    // const isOperator = this.authService.hasRole('Operator'); // Nem kell külön, az az 'else' ág
-
     const myCompany = this.authService.currentUserCompany();
-    const myUserName = this.authService.userName(); // Az email cím a username nálad
+    const myUserName = this.authService.userName();
 
     let filtered: DeviceItem[] = [];
-
-    if (isManager) {
-      // Manager: MINDENT lát
-      filtered = devices;
-    }
-    else if (isAdmin) {
-      // Admin: Saját cég VAGY ahol ő az owner
-      filtered = devices.filter(d =>
-        (myCompany && d.company === myCompany) ||
-        d.ownerUserName === myUserName
-      );
-    }
-    else {
-      // Operator (Individual): Csak ahol ő az owner
-      filtered = devices.filter(d => d.ownerUserName === myUserName);
-    }
-
+    if (isManager) filtered = devices;
+    else if (isAdmin) filtered = devices.filter(d => (myCompany && d.company === myCompany) || d.ownerUserName === myUserName);
+    else filtered = devices.filter(d => d.ownerUserName === myUserName);
     this.myDevices.set(filtered);
-    console.log('Filtered Devices for Dashboard:', filtered.length);
   }
 
-  // --- STATISZTIKÁK ---
   private updateStats() {
-    const count = this.myDevices().length;
-
-    // Egyszerű statisztika
     this.statCards.set([
-      {
-        id: 'total-devices',
-        title: 'Látható eszközök',
-        value: count.toString(),
-        subtitle: 'Jogosultság szerint'
-      },
-      {
-        id: 'active-devices',
-        title: 'Adatot küldött',
-        value: '---',
-        subtitle: 'Mióta beléptél'
-      },
-      {
-        id: 'last-telemetry',
-        title: 'Utolsó adat',
-        value: '---',
-        subtitle: 'Várakozás...'
-      }
+      { id: 'devs', title: 'Eszközök', value: this.myDevices().length.toString(), subtitle: 'Elérhető' },
+      { id: 'status', title: 'Kapcsolat', value: this.connectionStatus(), subtitle: 'SignalR' }
     ]);
   }
 
-  private updateLastTelemetryStat(time: string) {
-    this.statCards.update(cards => {
-      const newCards = [...cards];
-      const lastTelCard = newCards.find(c => c.id === 'last-telemetry');
-      if (lastTelCard) {
-        lastTelCard.value = time;
-        lastTelCard.subtitle = time === 'N/A' ? 'Nincs adat' : 'Frissítve';
-      }
-      return newCards;
-    });
-  }
-
-  // --- GRAFIKON LOGIKA (Egyszerűsített) ---
-  // Összegyűjti az összes bejövő adatot egy "idősorba"
-  private updateChart(feed: DashboardLiveFeedItem[]) {
-    // Ha nincs adat, ne csináljunk semmit
-    if (feed.length === 0) return;
-
-    // Veszünk egy eszközt a feedből (pl. az elsőt), és annak az adatait rajzoljuk ki
-    // Ez egy egyszerűsítés, de látványos.
-    const latestItem = feed[0];
-
-    this.telemetryCard.set({
-      title: 'Élő Adatfolyam',
-      selectedMetricLabel: 'Eszköz:',
-      selectedMetricKey: latestItem.deviceName, // Kiírjuk, melyik eszköz adata ez
-      metricOptions: [],
-      modeLabel: 'Valós idő',
-      placeholderText: `${latestItem.value} ${latestItem.unit}`, // Nagy számmal kiírjuk az értéket
-      // Itt később átadhatunk egy tömböt a Chart komponensnek
-    });
-  }
-
-  // Helper unitokhoz
   private getUnitByType(type: string): string {
-    const t = type.toLowerCase();
+    const t = type?.toLowerCase() || '';
     if (t.includes('temp')) return '°C';
     if (t.includes('hum')) return '%';
-    if (t.includes('volt')) return 'V';
     if (t.includes('press')) return 'bar';
+    if (t.includes('volt')) return 'V';
     return '';
   }
 }

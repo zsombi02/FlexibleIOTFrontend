@@ -1,0 +1,14 @@
+.form-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 400px;
+  padding-top: 10px;
+}
+.row {
+  display: flex;
+  gap: 12px;
+}
+.half {
+  flex: 1;
+}

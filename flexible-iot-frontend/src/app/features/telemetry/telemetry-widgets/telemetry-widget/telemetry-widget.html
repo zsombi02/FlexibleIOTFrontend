@@ -1,0 +1,86 @@
+<mat-card class="widget-card">
+  <div class="card-header">
+    <div class="header-title">Telemetria Nézőke</div>
+    <div class="header-meta" *ngIf="dataCount() > 0">{{ dataCount() }} adatpont</div>
+    <button mat-icon-button class="remove-btn" (click)="onRemove()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="card-body">
+
+    <!-- GRID LAYOUT -->
+    <div class="controls-grid">
+
+      <!-- 1. ESZKÖZ -->
+      <mat-form-field appearance="outline" class="dense-field">
+        <mat-label>Eszköz</mat-label>
+        <mat-select [(ngModel)]="config.deviceId" (selectionChange)="onDeviceChange()">
+          @for (dev of devices; track dev.id) {
+            <mat-option [value]="dev.id">{{ dev.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <!-- 2. TÍPUS -->
+      <mat-form-field appearance="outline" class="dense-field">
+        <mat-label>Típus</mat-label>
+        <mat-select [(ngModel)]="config.chartType" (selectionChange)="onConfigChange()">
+          @for (type of chartTypes; track type.value) {
+            <mat-option [value]="type.value">{{ type.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <!-- 3. IDŐABLAK (PRESET) -->
+      <mat-form-field appearance="outline" class="dense-field">
+        <mat-label>Időablak</mat-label>
+        <mat-select [(ngModel)]="selectedRangeValue" (selectionChange)="onRangeChange($event.value)">
+          @for (range of timeRanges; track range.value) {
+            <mat-option [value]="range.value">{{ range.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <!-- 4. KEZDET (Csak ha Custom) -->
+      <mat-form-field appearance="outline" class="dense-field">
+        <mat-label>Kezdet</mat-label>
+        <input matInput type="datetime-local" step="1"
+               [disabled]="selectedRangeValue !== 0"
+               [ngModel]="dateFromStr" (ngModelChange)="dateFromStr = $event">
+      </mat-form-field>
+
+      <!-- 5. VÉGE (Csak ha Custom) -->
+      <mat-form-field appearance="outline" class="dense-field">
+        <mat-label>Vége</mat-label>
+        <input matInput type="datetime-local" step="1"
+               [disabled]="selectedRangeValue !== 0"
+               [ngModel]="dateToStr" (ngModelChange)="dateToStr = $event">
+      </mat-form-field>
+
+    </div>
+
+    <!-- CHART -->
+    <div class="chart-container">
+      @if (isLoading()) {
+        <div class="placeholder">
+          <div class="spinner"></div>
+          <span>Adatok betöltése...</span>
+        </div>
+      } @else if (config.deviceId && chartOption()) {
+        <div echarts [options]="chartOption()!" class="echart"></div>
+      } @else if (!config.deviceId) {
+        <div class="placeholder info">
+          <mat-icon>touch_app</mat-icon>
+          <span>Válassz egy eszközt a listából!</span>
+        </div>
+      } @else {
+        <div class="placeholder warning">
+          <mat-icon>warning</mat-icon>
+          <span>Nincs adat ebben az időszakban.</span>
+        </div>
+      }
+    </div>
+
+  </div>
+</mat-card>

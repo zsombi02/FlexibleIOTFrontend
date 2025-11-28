@@ -1,1 +1,30 @@
-<p>telemetry-page works!</p>
+<div class="page-container">
+
+  <header>
+    <div class="header-left">
+      <h1>Telemetria Előzmények</h1>
+      <p>Hozzon létre kártyákat az adatok elemzéséhez</p>
+    </div>
+    <button mat-raised-button color="primary" (click)="addWidget()">
+      <mat-icon>add</mat-icon> Új Kártya
+    </button>
+  </header>
+
+  <div class="widgets-grid">
+    @for (widget of widgets(); track widget.uuid) {
+
+      <app-telemetry-widget
+        [config]="widget"
+        [devices]="availableDevices()"
+        (remove)="removeWidget($event)">
+      </app-telemetry-widget>
+
+    } @empty {
+      <div class="empty-dashboard">
+        <mat-icon>dashboard_customize</mat-icon>
+        <p>Nincs megjelenített kártya. Kattints az "Új Kártya" gombra!</p>
+      </div>
+    }
+  </div>
+
+</div>

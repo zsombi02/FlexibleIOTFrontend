@@ -1,175 +1,192 @@
+.dashboard-container {
+  height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: #f8f9fa;
+}
+
 .dashboard-header {
+  flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
 
-  h1 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 500;
+  h1 { margin: 0; font-size: 24px; }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    background: #eee;
+    color: #666;
+    &.online { background: #e8f5e9; color: #2e7d32; }
   }
 
-  .header-right {
+  .header-stats {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 14px;
-  }
-
-  .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background-color: #22c55e; // zöld online
-  }
-
-  .time-window {
-    padding: 4px 8px;
-    border-radius: 999px;
-    background-color: #eef2ff;
+    gap: 20px;
+    .mini-stat {
+      text-align: right;
+      .val { display: block; font-weight: bold; font-size: 18px; }
+      .sub { font-size: 11px; color: #888; text-transform: uppercase; }
+    }
   }
 }
 
-.dashboard-grid {
+.dashboard-content {
+  flex: 1;
   display: grid;
-  grid-template-columns: 1fr 2fr 1.5fr;
+  // Balra az osztott rész (Kártyák + Chart), jobbra a Feed
+  grid-template-columns: 3fr 1fr;
   gap: 16px;
+  overflow: hidden;
 }
 
-.left-column {
+/* --- ÚJ: OSZTOTT KÖZÉPSŐ SZEKCIÓ --- */
+.middle-split-container {
   display: grid;
-  grid-template-rows: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  // Balra a kis kártyák oszlopa (keskeny), jobbra a chart (széles)
+  grid-template-columns: 200px 1fr;
+  gap: 16px;
+  overflow: hidden;
 }
 
-.stat-card {
+/* SYSTEM INFO CARDS */
+.system-cards-col {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-
-  .stat-value {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 8px 0 4px;
-  }
-
-  .stat-subtitle {
-    font-size: 13px;
-    color: rgba(0, 0, 0, 0.6);
-  }
+  gap: 12px;
+  overflow-y: auto;
 }
 
-.center-column .telemetry-card {
-  height: 100%;
+.system-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 12px;
+  gap: 12px;
 
-  .telemetry-toolbar {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
-
-  .metric-label {
-    margin-right: 4px;
-    font-size: 13px;
-    color: rgba(0, 0, 0, 0.6);
-  }
-
-  .metric-pill,
-  .mode-pill {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background-color: #eef2ff;
-    font-size: 13px;
-  }
-
-  .telemetry-placeholder {
-    border: 1px dashed #d4d4d8;
-    border-radius: 12px;
-    min-height: 220px;
+  .sys-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #9ca3af;
-    font-size: 14px;
+    color: white;
+    mat-icon { font-size: 20px; width: 20px; height: 20px; }
+  }
+
+  .sys-data {
+    display: flex;
+    flex-direction: column;
+    .sys-val { font-weight: bold; font-size: 16px; line-height: 1.2; }
+    .sys-title { font-size: 11px; color: #888; text-transform: uppercase; }
   }
 }
 
-.right-column {
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  gap: 12px;
+/* CHART PANEL */
+.chart-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  ::ng-deep .mat-mdc-tab-header { background: #fafafa; }
+
+  // A TAB CÍMKÉBEN LÉVŐ ZÖLD PÖTTY
+  .live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #22c55e; // Élénk zöld
+    border-radius: 50%;
+    margin-left: 8px;
+    vertical-align: middle;
+    animation: livePulse 2s infinite; // Pulzálás!
+  }
+
+  .chart-container {
+    flex: 1;
+    position: relative;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .echart {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/* FEED PANEL */
+.feed-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .feed-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+  }
 }
 
 .feed-list {
   list-style: none;
   padding: 0;
   margin: 0;
-
-  .feed-item + .feed-item {
-    margin-top: 8px;
-  }
-
-  .feed-device {
-    font-weight: 500;
-  }
-
-  .feed-value {
-    font-size: 13px;
-    color: rgba(0, 0, 0, 0.6);
-  }
 }
 
-.top-devices-table {
-  width: 100%;
-  border-collapse: collapse;
+.feed-item {
+  display: flex;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
   font-size: 13px;
 
-  th,
-  td {
-    padding: 4px 0;
+  .feed-time {
+    width: 65px;
+    color: #999;
+    font-size: 11px;
+    flex-shrink: 0;
   }
 
-  th {
-    text-align: left;
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.6);
-  }
-
-  tr + tr {
-    border-top: 1px solid #e5e7eb;
+  .feed-content {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    .feed-dev { font-weight: 500; color: #333; }
+    .feed-val { font-weight: bold; color: #3f51b5; }
   }
 }
-.telemetry-big-number {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  font-size: 4rem;
-  font-weight: bold;
-  color: #3f51b5;
-  background: #f5f7fa;
-  border-radius: 12px;
-}
 
-.empty-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.waiting-state {
   height: 100%;
-  color: gray;
-  font-style: italic;
-}
-
-.feed-header {
   display: flex;
-  justify-content: space-between;
-  font-size: 0.9rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+
+  .pulse {
+    width: 40px; height: 40px;
+    background: #eef2ff;
+    border-radius: 50%;
+    margin-bottom: 16px;
+    animation: livePulse 2s infinite;
+  }
 }
 
-.feed-time {
-  font-size: 0.8rem;
-  color: #888;
+@keyframes livePulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
 }

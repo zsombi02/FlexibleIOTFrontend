@@ -1,88 +1,176 @@
-.details-header {
-  margin-bottom: 16px;
+.details-container {
+  padding: 24px;
+  /* Opcionális: limitáljuk a max szélességet ultranagy monitorokon, hogy ne essen szét */
+  max-width: 1800px;
+  margin: 0 auto;
+}
 
-  h1 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 500;
+header {
+  margin-bottom: 24px;
+  h1 { margin: 0; font-size: 32px; font-weight: 600; } /* Nagyobb cím */
+  .subtitle-row {
+    display: flex; gap: 12px; margin-top: 12px; align-items: center;
   }
-
-  .subtitle {
-    margin: 4px 0 0;
-    font-size: 13px;
-    color: rgba(0, 0, 0, 0.6);
-  }
 }
 
-.details-grid {
+.grid-layout {
   display: grid;
-  grid-template-columns: 1.5fr 2fr;
-  gap: 16px;
+  /* Szélesebb bal oszlop (300px -> 400px), hogy kényelmesen elférjenek az adatok */
+  grid-template-columns: 400px 1fr;
+  gap: 24px;
+  align-items: start;
 }
 
-.left-column {
-  display: grid;
-  grid-template-rows: auto auto;
-  gap: 12px;
+.left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.overview-card .overview-row {
+/* KÁRTYÁK ÁLTALÁNOS STÍLUSA - Nagyobb padding, mélyebb árnyék */
+mat-card {
+  border-radius: 16px !important; /* Kerekebb sarkok */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important; /* Elegánsabb árnyék */
+  overflow: hidden;
+}
+
+/* INFO CARD */
+.info-card .row {
   display: flex;
   justify-content: space-between;
-  padding: 4px 0;
+  align-items: center;
+  padding: 16px 0; /* Nagyobb térköz a sorok között */
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 15px; /* Nagyobb betűméret */
 
-  .label {
-    font-size: 13px;
-    color: rgba(0, 0, 0, 0.6);
-  }
+  &:last-child { border-bottom: none; }
 
-  .value {
-    font-size: 13px;
-  }
+  span { color: #555; font-weight: 500; }
+  strong { color: #222; }
 }
 
-.config-card {
-  font-size: 13px;
+.owner-card {
+  .owner-info { display: flex; flex-direction: column; gap: 8px; }
+  .owner-name { font-weight: bold; font-size: 20px; color: #222; }
+  .owner-email { color: #666; font-size: 15px; }
+  .owner-badges { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
 }
 
-.right-column {
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  gap: 12px;
-}
 
-.live-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.metric-card {
+  text-align: center;
+  padding: 30px 20px; /* Nagyobb belső tér */
 
-  .live-item + .live-item {
-    margin-top: 8px;
+  h3 {
+    margin: 0 0 20px;
+    color: #666;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
   }
 
-  .live-label {
+  .big-value {
+    font-size: 72px; /* Még nagyobb szám */
+    font-weight: 800;
+    color: #3f51b5;
+    line-height: 1;
+    text-shadow: 2px 2px 0px rgba(63, 81, 181, 0.1);
+  }
+
+  .timestamp {
+    font-size: 14px;
+    color: #999;
+    margin-top: 12px;
     font-weight: 500;
   }
+}
 
-  .live-value {
-    font-size: 13px;
-    color: rgba(0, 0, 0, 0.8);
+/* CHART CARD */
+.chart-card {
+  height: 650px;
+  display: flex;
+  flex-direction: column;
+
+  .chart-box {
+    flex: 1;
+    position: relative;
+    padding: 20px;
+    min-height: 0; /* Flexbox bugfix */
   }
 
-  .live-updated {
-    margin-left: 4px;
-    font-size: 12px;
-    color: rgba(0, 0, 0, 0.5);
+  .echart {
+    width: 100%;
+    height: 100%;
+  }
+
+  .waiting {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    font-size: 18px;
+    gap: 16px;
   }
 }
 
-.history-placeholder {
-  border: 1px dashed #d4d4d8;
-  border-radius: 12px;
-  min-height: 220px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #9ca3af;
+/* BADGES & CHIPS */
+.chip-id {
+  background: #f0f0f0;
+  padding: 6px 12px;
+  border-radius: 8px;
   font-size: 14px;
+  font-family: monospace;
+  font-weight: bold;
+  color: #444;
+}
+
+.chip-company {
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.chip-individual {
+  background: #f5f5f5;
+  color: #666;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.badge-role {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.badge-org {
+  background: #fff3e0;
+  color: #ef6c00;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.mono {
+  font-family: 'Roboto Mono', monospace;
+  background: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 1.1em;
+  color: #333;
+  border: 1px solid #eee;
 }

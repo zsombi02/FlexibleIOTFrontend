@@ -1,81 +1,81 @@
-<section class="details-header">
-  <h1>{{ pageTitle }}</h1>
-  <p class="subtitle">ID: {{ deviceId() }}</p>
-</section>
+<div class="details-container">
 
-<section class="details-grid">
-  <div class="left-column">
-    @let info = overview();
-    @if (info) {
-      <mat-card class="overview-card">
-        <mat-card-title>{{ info.name }}</mat-card-title>
+  <header>
+    <h1>{{ device()?.name }}</h1>
+    <div class="subtitle-row">
+      <span class="chip-id">ID: {{ deviceId() }}</span>
+      @if (device()?.company) {
+        <span class="chip-company">{{ device()?.company }}</span>
+      } @else {
+        <span class="chip-individual">Individual</span>
+      }
+    </div>
+  </header>
+
+  <div class="grid-layout">
+
+    <!-- BAL: Info + Owner -->
+    <div class="left-col">
+      <mat-card class="info-card">
+        <mat-card-header>
+          <mat-card-title>Adatok</mat-card-title>
+        </mat-card-header>
         <mat-card-content>
-          <div class="overview-row">
-            <span class="label">Type</span>
-            <span class="value">{{ info.type }}</span>
-          </div>
-          <div class="overview-row">
-            <span class="label">Status</span>
-            <span class="value">{{ info.status }}</span>
-          </div>
-          <div class="overview-row">
-            <span class="label">Company</span>
-            <span class="value">{{ info.company }}</span>
-          </div>
-          <div class="overview-row">
-            <span class="label">Location</span>
-            <span class="value">{{ info.location }}</span>
-          </div>
-          <div class="overview-row">
-            <span class="label">Firmware</span>
-            <span class="value">{{ info.firmwareVersion }}</span>
-          </div>
-          <div class="overview-row">
-            <span class="label">Registered</span>
-            <span class="value">{{ info.registeredAt }}</span>
-          </div>
+          <div class="row"><span>Topic:</span> <strong class="mono">{{ device()?.topic }}</strong></div>
+          <div class="row"><span>Típus:</span> <strong>{{ device()?.type }}</strong></div>
+          <div class="row"><span>Időköz:</span> <strong>{{ device()?.timeInterval }}s</strong></div>
+          <div class="row"><span>Regisztrálva:</span> <span>{{ device()?.registeredAt | date }}</span></div>
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="config-card">
-        <mat-card-title>Configuration</mat-card-title>
+      <!-- TULAJDONOS KÁRTYA -->
+      <mat-card class="owner-card">
+        <mat-card-header>
+          <mat-card-title>Tulajdonos</mat-card-title>
+        </mat-card-header>
         <mat-card-content>
-          <p>Configuration placeholder (REST-based settings later).</p>
-        </mat-card-content>
-      </mat-card>
-    }
-  </div>
-
-  <div class="right-column">
-    <mat-card class="live-card">
-      <mat-card-title>Live metrics</mat-card-title>
-      <mat-card-content>
-        <ul class="live-list">
-          @for (m of liveMetrics(); track m.id) {
-            <li class="live-item">
-              <div class="live-label">{{ m.label }}</div>
-              <div class="live-value">
-                {{ m.value }} {{ m.unit }}
-                <span class="live-updated">({{ m.updatedAt }})</span>
+          @let owner = ownerDetails();
+          @if (owner) {
+            <div class="owner-info">
+              <div class="owner-name">{{ owner.name }}</div>
+              <div class="owner-email">{{ owner.email }}</div>
+              <div class="owner-badges">
+                <span class="badge-role">{{ owner.role }}</span>
+                @if (owner.type === 'company') {
+                  <span class="badge-org">{{ owner.organizationName }}</span>
+                }
               </div>
-            </li>
+            </div>
+          } @else {
+            <!-- Ha még tölt, vagy nem találtuk, kiírjuk az emailt -->
+            <div class="owner-simple">{{ device()?.ownerUserName }}</div>
           }
-        </ul>
-      </mat-card-content>
-    </mat-card>
-
-    @let hist = historySummary();
-    @if (hist) {
-      <mat-card class="history-card">
-        <mat-card-title>
-          {{ hist.metricLabel }} – {{ hist.timeWindowLabel }}
-        </mat-card-title>
-        <mat-card-content>
-          <div class="history-placeholder">
-            {{ hist.placeholderText }}
-          </div>
         </mat-card-content>
       </mat-card>
-    }
+
+      <!-- LIVE METRIC -->
+      <mat-card class="metric-card">
+        <mat-card-content>
+          <h3>Legfrissebb adat</h3>
+          <div class="big-value">{{ lastValue() }}</div>
+          <div class="timestamp">Frissítve: {{ lastUpdated() }}</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- JOBB: Chart -->
+    <div class="right-col">
+      <mat-card class="chart-card">
+        <mat-card-content class="chart-box">
+          @let opts = chartOption();
+          @if (opts) {
+            <div echarts [options]="opts" class="echart"></div>
+          } @else {
+            <div class="waiting">Várakozás adatokra...</div>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+
   </div>
-</section>
+</div>

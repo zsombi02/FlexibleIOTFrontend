@@ -1,68 +1,95 @@
-<section class="dashboard-grid">
+<div class="dashboard-container">
 
-  <div class="left-column">
-    @for (card of statCards(); track card.id) {
-      <mat-card class="stat-card">
-        <mat-card-title>{{ card.title }}</mat-card-title>
-        <mat-card-content>
-          <div class="stat-value">{{ card.value }}</div>
-          <div class="stat-subtitle">{{ card.subtitle }}</div>
-        </mat-card-content>
-      </mat-card>
-    }
-  </div>
+  <header class="dashboard-header">
+    <div>
+      <h1>{{ pageTitle }}</h1>
+      <div class="status-badge" [class.online]="connectionStatus() === 'Online'">
+        {{ connectionStatus() }}
+      </div>
+    </div>
+    <div class="header-stats">
+      @for (card of statCards(); track card.id) {
+        <div class="mini-stat">
+          <span class="val">{{ card.value }}</span>
+          <span class="sub">{{ card.title }}</span>
+        </div>
+      }
+    </div>
+  </header>
 
-  <div class="center-column">
-    @let chart = telemetryCard();
-    @if (chart) {
-      <mat-card class="telemetry-card">
-        <mat-card-title>{{ chart.title }}</mat-card-title>
+  <div class="dashboard-content">
 
-        <mat-card-content>
-          <div class="telemetry-toolbar">
-            <div class="metric-selector">
-              <span class="metric-label">{{ chart.selectedMetricLabel }}</span>
-              <span class="metric-pill">{{ chart.selectedMetricKey }}</span>
+    <!-- KÖZÉPSŐ SZEKCIÓ (Osztott: Kis kártyák + Chart) -->
+    <div class="middle-split-container">
+
+      <!-- 1. Balra a "System Info" kártyák -->
+      <div class="system-cards-col">
+        @for (info of systemInfoCards(); track info.title) {
+          <mat-card class="system-card">
+            <div class="sys-icon" [style.background-color]="info.color">
+              <mat-icon>{{ info.icon }}</mat-icon>
             </div>
-            <div class="mode-pill">LIVE</div>
-          </div>
+            <div class="sys-data">
+              <span class="sys-val">{{ info.value }}</span>
+              <span class="sys-title">{{ info.title }}</span>
+            </div>
+          </mat-card>
+        }
+      </div>
 
-          <div class="telemetry-big-number">
-            {{ chart.placeholderText }}
-          </div>
+      <!-- 2. Jobbra a Chart (így már kisebb) -->
+      <mat-card class="chart-panel">
+
+        <mat-tab-group [selectedIndex]="0" (selectedIndexChange)="onTabChange($event)" animationDuration="0ms">
+          @for (device of myDevices(); track device.id) {
+            <mat-tab>
+              <!-- Itt a custom label a zöld pöttyel! -->
+              <ng-template mat-tab-label>
+                {{ device.name }}
+                @if (isDeviceLive(device.id)) {
+                  <span class="live-dot" title="Élő adat érkezik"></span>
+                }
+              </ng-template>
+            </mat-tab>
+          }
+        </mat-tab-group>
+
+        <mat-card-content class="chart-container">
+          @let currentOptions = chartOption();
+          @if (currentOptions) {
+            <div echarts [options]="currentOptions" class="echart"></div>
+          } @else {
+            <div class="waiting-state">
+              <div class="pulse"></div>
+              <p>Várakozás adatra: <strong>{{ myDevices()[0]?.name || 'Nincs eszköz' }}</strong>...</p>
+            </div>
+          }
         </mat-card-content>
       </mat-card>
-    } @else {
-      <mat-card class="telemetry-card">
-        <mat-card-content class="empty-state">
-          Várakozás adatokra...
-        </mat-card-content>
-      </mat-card>
-    }
-  </div>
 
-  <div class="right-column">
-    <mat-card class="feed-card">
-      <mat-card-title>Élő feed (Szűrt)</mat-card-title>
-      <mat-card-content>
+    </div>
+
+    <!-- JOBB OSZLOP: Élő Feed -->
+    <mat-card class="feed-panel">
+      <mat-card-header>
+        <mat-card-title>Élő napló</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="feed-scroll-area">
         <ul class="feed-list">
           @for (item of liveFeedItems(); track item.id) {
             <li class="feed-item">
-              <div class="feed-header">
-                <span class="feed-device">{{ item.deviceName }}</span>
-                <span class="feed-time">{{ item.time }}</span>
-              </div>
-              <div class="feed-detail">
-                {{ item.metricName }}: <strong>{{ item.value }} {{ item.unit }}</strong>
+              <div class="feed-time">{{ item.time }}</div>
+              <div class="feed-content">
+                <span class="feed-dev">{{ item.deviceName }}</span>
+                <span class="feed-val">{{ item.value }} {{ item.unit }}</span>
               </div>
             </li>
           } @empty {
-            <li class="feed-item" style="color: gray">Nincs beérkező adat az engedélyezett eszközökről.</li>
+            <li class="empty-feed">Csend honol...</li>
           }
         </ul>
       </mat-card-content>
     </mat-card>
 
   </div>
-
-</section>
+</div>

@@ -104,18 +104,52 @@
     </mat-card>
   }
 
-  <mat-card class="admin-card admin-card-full">
-    <mat-card-title class="card-header">
-      <span>Assignments</span>
-      <button mat-stroked-button color="primary" disabled>
-        <mat-icon>link</mat-icon>
-        Assign device (WIP)
-      </button>
-    </mat-card-title>
-    <mat-card-content>
-      <p style="color: gray; font-style: italic; padding: 10px;">
-        A Device backend még fejlesztés alatt...
-      </p>
-    </mat-card-content>
-  </mat-card>
+  @if (!authService.hasRole('Operator')) {
+    <mat-card class="admin-card admin-card-full">
+      <mat-card-title class="card-header">
+        <span>Assignments (Devices)</span>
+        <!-- Itt nincs "Add", mert az a Devices oldalon van -->
+      </mat-card-title>
+
+      <mat-card-content>
+        <table class="admin-table">
+          <thead>
+          <tr>
+            <th>Eszköz</th>
+            <th>Tulajdonos</th>
+            <th>Jelenlegi Cég</th>
+            <th>Művelet</th>
+          </tr>
+          </thead>
+          <tbody>
+            @for (dev of assignments(); track dev.id) {
+              <tr>
+                <td>{{ dev.name }}</td>
+                <td>{{ dev.ownerUserName }}</td>
+                <td>
+                  <!-- Szép badge a cégnek -->
+                  @if(dev.company) {
+                    <span class="badge-org">{{ dev.company }}</span>
+                  } @else {
+                    <span style="color: #999; font-style: italic;">— Individual —</span>
+                  }
+                </td>
+                <td class="actions-cell">
+                  <button mat-icon-button (click)="openAssignDeviceDialog(dev)" title="Change Company">
+                    <mat-icon>business</mat-icon> <!-- Cég ikon a váltáshoz -->
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" style="text-align: center; color: #777; padding: 20px;">
+                  Nincs megjeleníthető eszköz.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  }
 </section>

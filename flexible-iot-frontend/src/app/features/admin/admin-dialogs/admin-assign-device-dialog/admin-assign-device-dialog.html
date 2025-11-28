@@ -1,0 +1,26 @@
+<h2 mat-dialog-title>Eszköz céghez rendelése</h2>
+<mat-dialog-content>
+  <div class="info-block">
+    <p>Eszköz: <strong>{{ data.device.name }}</strong></p>
+    <p class="subtitle">Jelenlegi tulajdonos: {{ data.device.ownerUserName }} (Nem módosul)</p>
+  </div>
+
+  <mat-form-field appearance="outline" style="width: 100%; margin-top: 10px;">
+    <mat-label>Válassz céget</mat-label>
+    <mat-select [(ngModel)]="selectedCompany">
+
+      <!-- Kivétel a cégből (Individual) -->
+      <mat-option [value]="null">-- Nincs (Individual) --</mat-option>
+
+      @for (org of data.companies; track org.id) {
+        <mat-option [value]="org.name">{{ org.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Mégse</button>
+  <!-- Visszaküldjük a kiválasztott cég nevét (vagy null-t) -->
+  <button mat-raised-button color="primary" [mat-dialog-close]="selectedCompany">Mentés</button>
+</mat-dialog-actions>

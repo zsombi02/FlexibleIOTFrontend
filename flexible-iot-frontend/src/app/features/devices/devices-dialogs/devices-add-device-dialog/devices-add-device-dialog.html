@@ -1,0 +1,65 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Eszköz szerkesztése' : 'Új eszköz' }}</h2>
+<mat-dialog-content>
+  <div class="form-col">
+
+    <mat-form-field appearance="outline">
+      <mat-label>Név</mat-label>
+      <input matInput [(ngModel)]="formData.name" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>MQTT Topic</mat-label>
+      <input matInput [(ngModel)]="formData.topic" required>
+    </mat-form-field>
+
+    <div class="row">
+      <mat-form-field appearance="outline" class="half">
+        <mat-label>Típus</mat-label>
+        <input matInput [(ngModel)]="formData.type">
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="half">
+        <mat-label>Időköz (mp)</mat-label>
+        <input matInput type="number" [(ngModel)]="formData.timeInterval" min="1">
+      </mat-form-field>
+    </div>
+
+    <!-- CÉG VÁLASZTÓ -->
+    @if (canSelectCompany) {
+      <mat-form-field appearance="outline">
+        <mat-label>Cég</mat-label>
+        <mat-select [(ngModel)]="formData.companyName">
+          <mat-option [value]="null">-- Individual --</mat-option>
+          @for (org of availableCompanies; track org.id) {
+            <mat-option [value]="org.name">{{ org.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+
+    <!-- TULAJDONOS VÁLASZTÓ (Dropdown lett!) -->
+    <mat-form-field appearance="outline">
+      <mat-label>Tulajdonos</mat-label>
+
+      <!-- Ha van joga szerkeszteni, akkor Select -->
+      @if (canEditOwner) {
+        <mat-select [(ngModel)]="formData.ownerUserName" required>
+          @for (user of availableUsers; track user.id) {
+            <mat-option [value]="user.email || user.name">
+              {{ user.name }} <small>({{ user.email }})</small>
+            </mat-option>
+          }
+        </mat-select>
+      } @else {
+        <input matInput [(ngModel)]="formData.ownerUserName" disabled>
+      }
+    </mat-form-field>
+
+
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Mégse</button>
+  <!-- isValid() metódus hiányában a 'required' a template-ben nem tiltja le a gombot automatikusan Angularban Form nélkül,
+       de most egyszerűsítve hagyjuk így -->
+  <button mat-raised-button color="primary" [mat-dialog-close]="formData">Mentés</button>
+</mat-dialog-actions>

@@ -12,6 +12,9 @@ import {AdminAddUserDialogComponent} from '../admin-dialogs/admin-add-user-dialo
 import {
   AdminAssignCompanyDialogComponent
 } from '../admin-dialogs/admin-assign-company-dialog/admin-assign-company-dialog';
+import {CreateDeviceRequest, DeviceItem} from '../../devices/devices-models/devices-models';
+import {DevicesService} from '../../devices/devices-api/devices-service';
+import {AdminAssignDeviceDialog} from '../admin-dialogs/admin-assign-device-dialog/admin-assign-device-dialog';
 
 @Component({
   selector: 'app-admin-page',
@@ -30,20 +33,19 @@ import {
 })
 export class AdminPage extends BaseComponent implements OnInit {
   private adminApi = inject(AdminService);
+  private deviceApi = inject(DevicesService);
   private dialog = inject(MatDialog);
   private router = inject(Router);
-  protected authService = inject(AuthService); // Protected, hogy a HTML lássa
+  protected authService = inject(AuthService);
 
   pageTitle = 'Administration';
 
   users = signal<AdminUserItem[]>([]);
   organizations = signal<AdminOrganizationItem[]>([]);
+  assignments = signal<DeviceItem[]>([]);
 
-  // Ezzel figyeljük, hogy betöltött-e már a "saját adat"
   constructor() {
     super();
-
-    // Effect: Ha megváltozik a isHydrated signal, lefut ez a logika
     effect(() => {
       if (this.authService.isHydrated()) {
         this.checkAccessAndLoad();
@@ -52,67 +54,41 @@ export class AdminPage extends BaseComponent implements OnInit {
   }
 
   ngOnInit() {
-    // 1. Indítjuk a "felokosítást"
     this.authService.hydrateUserData();
   }
 
-  // Ez a fő beléptető/töltő logika
   private checkAccessAndLoad() {
     const isManager = this.authService.hasRole('Manager');
-    const isAdmin = this.authService.hasRole('Admin');
-    const isOperator = this.authService.hasRole('Operator');
     const myCompany = this.authService.currentUserCompany();
 
-    // 1. SZŰRŐ: Individual Admin/Operator KIVÁGÁSA
-    // Ha nem Manager ÉS nincs cége -> Viszlát (Dashboard)
     if (!isManager && !myCompany) {
-      console.warn('Individual Admin/Operator access denied. Redirecting...');
       this.router.navigate(['/dashboard']);
       return;
     }
 
-    // 2. ADATBETÖLTÉS
-    // Mindenki betöltheti a usereket (a backend szűr)
     this.loadUsers();
 
-    // Cégeket csak Admin és Manager láthat
-    if (isManager || isAdmin) {
+    if (isManager || this.authService.hasRole('Admin')) {
       this.loadCompanies();
+      this.loadAssignments();
     }
   }
 
+  // --- ADATBETÖLTÉS ---
+
   loadUsers() {
     this.adminApi.getUsers().subscribe(allUsers => {
-
       if (this.authService.hasRole('Manager')) {
         this.users.set(allUsers);
-        return;
-      }
-
-      if (this.authService.hasRole('Admin')) {
+      } else if (this.authService.hasRole('Admin')) {
         const myCompany = this.authService.currentUserCompany();
-
-        const filtered = allUsers.filter(u =>
-          u.organizationName === myCompany || // Saját céges
-          !u.organizationName                 // VAGY Individual (nincs cége)
-        );
-
-        this.users.set(filtered);
-        return;
-      }
-
-      if (this.authService.hasRole('Operator')) {
+        this.users.set(allUsers.filter(u => u.organizationName === myCompany || !u.organizationName));
+      } else if (this.authService.hasRole('Operator')) {
         const myCompany = this.authService.currentUserCompany();
-
-        const filtered = allUsers.filter(u =>
-          u.organizationName === myCompany
-        );
-
-        this.users.set(filtered);
-        return;
+        this.users.set(allUsers.filter(u => u.organizationName === myCompany));
+      } else {
+        this.users.set([]);
       }
-
-      this.users.set([]);
     });
   }
 
@@ -120,10 +96,27 @@ export class AdminPage extends BaseComponent implements OnInit {
     this.adminApi.getCompanies().subscribe(res => this.organizations.set(res));
   }
 
-  // --- ACTIONS ---
+  loadAssignments() {
+    this.deviceApi.getAllDevices().subscribe(allDevices => {
+      if (this.authService.hasRole('Manager')) {
+        this.assignments.set(allDevices);
+        return;
+      }
+      if (this.authService.hasRole('Admin')) {
+        const myCompany = this.authService.currentUserCompany();
+        const filtered = allDevices.filter(d =>
+          d.company === myCompany || !d.company
+        );
+        this.assignments.set(filtered);
+        return;
+      }
+      this.assignments.set([]);
+    });
+  }
+
+  // --- USER ACTIONS (VISSZAÁLLÍTVA!) ---
 
   openAddUserDialog() {
-    // Csak Admin és Manager
     if (!this.authService.hasRole('Manager') && !this.authService.hasRole('Admin')) return;
 
     const dialogRef = this.dialog.open(AdminAddUserDialogComponent, { width: '400px' });
@@ -136,45 +129,38 @@ export class AdminPage extends BaseComponent implements OnInit {
   }
 
   private createUserProcess(req: CreateUserRequest) {
-    // 1. Létrehozzuk a usert
     this.adminApi.createUser(req).subscribe({
       next: () => {
-        // 2. HA ADMIN VAGYOK: Azonnal hozzá kell rendelni a saját cégemhez!
-        // Mert a Register endpoint nem csinálja meg magától.
         if (this.authService.hasRole('Admin') && !this.authService.hasRole('Manager')) {
           this.autoAssignToMyCompany(req.email);
         } else {
-          // Manager esetén, vagy ha kész, újratöltünk
           this.loadUsers();
         }
       }
     });
   }
 
-  // Admin trükk: Megkeressük az új usert és rárakjuk a cégünket
   private autoAssignToMyCompany(userEmail: string) {
     const myCompany = this.authService.currentUserCompany();
-    if (!myCompany) return; // Nem kéne előfordulnia az effect miatt
+    if (!myCompany) return;
 
-    // Frissítjük a listát, hogy megkapjuk az új user ID-ját
     this.adminApi.getUsers().subscribe(users => {
       const newUser = users.find(u => u.email === userEmail);
       if (newUser) {
         this.adminApi.assignCompanyToUser(newUser.id, myCompany).subscribe(() => {
-          this.loadUsers(); // Kész, most már céghez kötve jelenik meg
+          this.loadUsers();
         });
       }
     });
   }
 
   deleteUser(user: AdminUserItem) {
-    // Jogosultság ellenőrzés
     const isManager = this.authService.hasRole('Manager');
     const isAdmin = this.authService.hasRole('Admin');
 
     if (!isManager && !isAdmin) return;
 
-    if(confirm(`Biztosan törölni szeretnéd: ${user.name}? (Admin esetén csak kikerül a cégből)`)) {
+    if(confirm(`Biztosan törölni szeretnéd: ${user.name}?`)) {
       this.adminApi.deleteUser(user.id).subscribe(() => this.loadUsers());
     }
   }
@@ -192,7 +178,6 @@ export class AdminPage extends BaseComponent implements OnInit {
     } else if (isAdmin) {
       const myCompanyName = this.authService.currentUserCompany();
       const myCompanyObj = this.organizations().find(c => c.name === myCompanyName);
-
       if (myCompanyObj) {
         companiesToShow = [myCompanyObj];
       }
@@ -207,7 +192,10 @@ export class AdminPage extends BaseComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((selectedCompanyName: string | null) => {
-      if (selectedCompanyName !== undefined && selectedCompanyName !== null) {
+      if (selectedCompanyName !== undefined && selectedCompanyName !== '') {
+        if(selectedCompanyName == null) {
+          selectedCompanyName = '';
+        }
         this.adminApi.assignCompanyToUser(user.id, selectedCompanyName).subscribe(() => {
           this.loadUsers();
           this.loadCompanies();
@@ -216,7 +204,7 @@ export class AdminPage extends BaseComponent implements OnInit {
     });
   }
 
-  // --- ORG ACTIONS (Csak Manager) ---
+  // --- ORG ACTIONS (VISSZAÁLLÍTVA!) ---
 
   openAddOrgDialog() {
     if (!this.authService.hasRole('Manager')) return;
@@ -231,11 +219,66 @@ export class AdminPage extends BaseComponent implements OnInit {
 
     if(confirm(`Biztosan törölni szeretnéd a szervezetet: ${org.name}?`)) {
       this.adminApi.deleteCompany(org.id).subscribe(() => {
-
         this.loadCompanies();
         this.loadUsers();
-
       });
     }
+  }
+
+  // --- DEVICE ASSIGNMENT ACTIONS ---
+
+  openAssignDeviceDialog(device: DeviceItem) {
+    const isManager = this.authService.hasRole('Manager');
+    const isAdmin = this.authService.hasRole('Admin');
+
+    if (!isManager && !isAdmin) return;
+
+    let companiesToShow: AdminOrganizationItem[] = [];
+
+    if (isManager) {
+      companiesToShow = this.organizations();
+    } else if (isAdmin) {
+      const myCompanyName = this.authService.currentUserCompany();
+      const myCompanyObj = this.organizations().find(c => c.name === myCompanyName);
+      if (myCompanyObj) companiesToShow = [myCompanyObj];
+    }
+
+    const dialogRef = this.dialog.open(AdminAssignDeviceDialog, {
+      width: '400px',
+      data: {
+        device: device,
+        companies: companiesToShow
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((selectedCompany: string | null | undefined) => {
+
+      // --- ITT VOLT A HIBA: JAVÍTVA! ---
+      // A 'selectedCompany' lehet:
+      // - undefined: Mégse (X vagy backdrop)
+      // - '': Mégse gomb (mat-dialog-close attribute) <--- EZT MOST KISZŰRJÜK!
+      // - null: "Nincs (Individual)" opció (ez valid!)
+      // - 'Cég Neve': Valid cég
+
+      if (selectedCompany !== undefined && selectedCompany !== '') {
+        this.saveDeviceAssignment(device, selectedCompany);
+      }
+    });
+  }
+
+  private saveDeviceAssignment(device: DeviceItem, newCompany: string | null) {
+    const updateDto: CreateDeviceRequest = {
+      name: device.name,
+      topic: device.topic,
+      type: device.type,
+      timeInterval: device.timeInterval,
+      ownerUserName: device.ownerUserName,
+      companyName: newCompany || undefined,
+      description: ''
+    };
+
+    this.deviceApi.updateDevice(device.id, updateDto).subscribe(() => {
+      this.loadAssignments();
+    });
   }
 }

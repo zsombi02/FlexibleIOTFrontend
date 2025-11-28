@@ -1,54 +1,59 @@
+<div class="page-header">
+  <h1>{{ pageTitle }}</h1>
+  <button mat-raised-button color="primary" (click)="openCreateDialog()">
+    <mat-icon>add</mat-icon> Új eszköz
+  </button>
+</div>
+
 <mat-card class="devices-card">
-  <mat-card-title class="devices-header">
-    <span>{{ pageTitle }}</span>
-
-    <span class="devices-header-actions">
-      <!-- későbbi filter input helye -->
-      <span class="devices-filter-placeholder">Filter placeholder</span>
-
-      <button mat-raised-button color="primary">
-        <mat-icon>add</mat-icon>
-        Add device
-      </button>
-    </span>
-  </mat-card-title>
-
   <mat-card-content>
-    <table class="devices-table">
-      <thead>
-      <tr>
-        <th>ID</th>
-        <th>Device</th>
-        <th>Type</th>
-        <th>Status</th>
-        <th>Last seen</th>
-        <th>Company</th>
-        <th>Location</th>
-        <th></th>
+    <table mat-table [dataSource]="devices()" class="full-width-table">
+
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef> ID </th>
+        <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef> Név </th>
+        <td mat-cell *matCellDef="let element"> <strong>{{element.name}}</strong> </td>
+      </ng-container>
+
+      <ng-container matColumnDef="type">
+        <th mat-header-cell *matHeaderCellDef> Típus </th>
+        <td mat-cell *matCellDef="let element"> {{element.type}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="company">
+        <th mat-header-cell *matHeaderCellDef> Cég </th>
+        <td mat-cell *matCellDef="let element"> {{element.company || '—'}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="owner">
+        <th mat-header-cell *matHeaderCellDef> Tulajdonos </th>
+        <td mat-cell *matCellDef="let element"> {{element.ownerUserName}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let element" style="text-align: right;">
+          @if (canEdit(element)) {
+            <button mat-icon-button (click)="openEditDialog(element, $event)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteDevice(element, $event)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          [routerLink]="['/devices', row.id]"
+          style="cursor: pointer;"
+          class="hover-row">
       </tr>
-      </thead>
-      <tbody>
-        @for (dev of devices(); track dev.id) {
-          <tr>
-            <td>{{ dev.id }}</td>
-            <td>{{ dev.name }}</td>
-            <td>{{ dev.type }}</td>
-            <td>
-              <span class="status-pill status-{{ dev.status }}">
-                {{ dev.status }}
-              </span>
-            </td>
-            <td>{{ dev.lastSeen }}</td>
-            <td>{{ dev.company }}</td>
-            <td>{{ dev.location }}</td>
-            <td class="devices-actions-cell">
-              <a [routerLink]="['/devices', dev.id]" class="details-link">
-                Details
-              </a>
-            </td>
-          </tr>
-        }
-      </tbody>
     </table>
   </mat-card-content>
 </mat-card>

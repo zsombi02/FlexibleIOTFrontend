@@ -1,41 +1,3 @@
-export interface DeviceListItem {
-  id: string;
-  name: string;
-  type: string;
-  status: 'online' | 'offline';
-  lastSeen: string;
-  company: string;
-  location: string;
-}
-
-export interface DeviceDetailsOverview {
-  id: string;
-  name: string;
-  type: string;
-  status: 'online' | 'offline';
-  company: string;
-  location: string;
-  firmwareVersion: string;
-  registeredAt: string;
-}
-
-export interface DeviceLiveMetric {
-  id: string;
-  key: string;
-  label: string;
-  value: string;
-  unit: string;
-  updatedAt: string;
-}
-
-export interface DeviceHistorySummary {
-  metricKey: string;
-  metricLabel: string;
-  timeWindowLabel: string;
-  placeholderText: string;
-}
-
-///////////////////////////////
 export interface DeviceItem {
   id: number;
   name: string;
@@ -46,7 +8,11 @@ export interface DeviceItem {
   timeInterval: number;
 }
 
-// Backend: CreateDeviceDto
+export interface DeviceDetails extends DeviceItem {
+  description?: string;
+  registeredAt: string;
+}
+
 export interface CreateDeviceRequest {
   name: string;
   topic: string;
@@ -57,8 +23,17 @@ export interface CreateDeviceRequest {
   description?: string;
 }
 
+export interface DeviceLiveMetric {
+  key: string;
+  label: string;
+  value: string;
+  unit: string;
+  updatedAt: string;
+}
+
 export interface TelemetryData {
   id?: number;
+  deviceId?: number;
   name?: string;
   type?: string;
   value: any;
