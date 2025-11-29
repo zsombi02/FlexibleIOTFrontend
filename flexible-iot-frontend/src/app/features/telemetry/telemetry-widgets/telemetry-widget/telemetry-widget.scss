@@ -1,6 +1,5 @@
 :host {
   display: block;
-  /* Desktopon kitölti a grid cellát (ami fix 520px a page css miatt) */
   height: 100%;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
@@ -8,7 +7,7 @@
 /* EXPANDED NÉZET */
 :host(.expanded-widget) {
   grid-column: span 2;
-  grid-row: span 1; /* 2x520px + gap lesz a magassága */
+  grid-row: span 1;
 }
 
 .widget-card {
@@ -30,7 +29,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px; /* Kicsit több padding */
+  padding: 12px 16px;
   background: #fff;
   border-bottom: 1px solid #f0f0f0;
 
@@ -69,7 +68,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  min-height: 0; /* Fontos flexbox bugfix, hogy ne lógjon túl a tartalom */
+  min-height: 0;
 }
 
 /* --- CONTROLS GRID --- */
@@ -90,7 +89,6 @@
 /* --- CHART --- */
 .chart-container {
   flex: 1;
-  /* Min-heightet leveszem kicsit, hogy ne feszítse szét, ha sok a control */
   min-height: 200px;
   position: relative;
   border-radius: 8px;
@@ -127,8 +125,8 @@
 /* --- RESPONSIVE OVERRIDES --- */
 @media (max-width: 600px) {
   :host {
-    height: auto !important; /* Mobilon felülírjuk a fix magasságot */
-    min-height: 400px; /* Egy minimumot azért adunk neki */
+    height: auto !important;
+    min-height: 400px;
     margin-bottom: 16px;
   }
 

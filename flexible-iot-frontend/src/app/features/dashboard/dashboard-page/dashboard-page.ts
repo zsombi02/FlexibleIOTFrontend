@@ -1,5 +1,4 @@
-import {Component, effect, inject, OnDestroy, OnInit, signal, computed} from '@angular/core'; // computed importálva
-import {BaseComponent} from '../../../core/base/base';
+import {Component, computed, effect, inject, OnDestroy, OnInit, signal} from '@angular/core'; // computed importálva
 import {DashboardLiveFeedItem, DashboardStatCard} from '../dashboard-models/dashboard-models';
 import {MatCardModule} from '@angular/material/card';
 import {MatIconModule} from '@angular/material/icon';
@@ -14,7 +13,7 @@ import {FormsModule} from '@angular/forms';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {SimulationService} from '../dashboard-api/simulation-service';
 import {MatFormField} from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import {MatInputModule} from '@angular/material/input';
 import {MatSlideToggle} from '@angular/material/slide-toggle';
 import {MatSelectModule} from '@angular/material/select';
 import {MatButton} from '@angular/material/button';
@@ -39,11 +38,10 @@ import {DeviceAccessFacade} from '../../../core/base/devices-access-facade';
   templateUrl: './dashboard-page.html',
   styleUrl: './dashboard-page.scss',
 })
-export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
+export class DashboardPage  implements OnInit, OnDestroy {
   pageTitle = 'Dashboard';
 
   private telemetry = inject(SignalrTelemetryService);
-  // private deviceApi = inject(DevicesService); // TÖRÖLVE, már nem kell közvetlenül
   private authService = inject(AuthService);
   private simulationService = inject(SimulationService);
   private snackBar = inject(MatSnackBar);
@@ -52,7 +50,6 @@ export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
 
   connectionStatus = this.telemetry.connectionStatus;
 
-  // ADATOK: A myDevices mostantól a facade-ra mutat
   myDevices = this.deviceFacade.devices;
 
   liveFeedItems = signal<DashboardLiveFeedItem[]>([]);
@@ -78,7 +75,6 @@ export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
   });
 
   constructor() {
-    super();
 
     effect(() => {
       // 1. Figyeljük a Feed változását a Service-ben
@@ -116,7 +112,6 @@ export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
       this.updateStats();
     });
 
-    // ÚJ EFFECT: Ha betöltődtek az eszközök, kiválasztjuk az elsőt a charthoz
     effect(() => {
       const devices = this.myDevices();
       if (devices.length > 0 && this.selectedDeviceId() === null) {
@@ -141,7 +136,6 @@ export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ... (Demo mód metódusok változatlanok: toggleDemoMode, onStartAllSim, stb.) ...
   toggleDemoMode(isActive: boolean) {
     this.demoMode.set(isActive);
     if (!isActive) {
@@ -210,13 +204,8 @@ export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
   }
 
   private initData() {
-    // RÉGI KÓD TÖRÖLVE: this.deviceApi.getAllDevices()...
-
-    // ÚJ KÓD: Csak megkérjük a Facade-ot, hogy töltsön
     this.deviceFacade.loadDevices();
   }
-
-  // TÖRÖLVE: private filterDevicesByRole(...) - már a Facade végzi
 
   onTabChange(index: number) {
     const devices = this.myDevices();

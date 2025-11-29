@@ -51,14 +51,12 @@ export class AdminAddUserDialogComponent {
     this.adminApi.createUser(this.data).subscribe({
       next: () => {
         this.isLoading.set(false);
-        // Siker: Bezárjuk a dialogot és visszaadjuk az adatokat (hogy a szülő tudja, ki lett létrehozva)
         this.dialogRef.close(this.data);
       },
       error: (err) => {
         this.isLoading.set(false);
         console.error('User creation error:', err);
 
-        // Ugyanaz a hibaüzenet logika, mint a Login oldalon
         if (Array.isArray(err.error)) {
           const messages = err.error.map((e: any) => e.description).join('\n');
           this.errorMessage.set(messages);

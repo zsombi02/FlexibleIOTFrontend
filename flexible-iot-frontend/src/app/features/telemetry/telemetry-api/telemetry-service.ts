@@ -13,7 +13,6 @@ export class TelemetryService {
   getTelemetryHistory(deviceId: number, from?: Date | null, to?: Date | null): Observable<TelemetryPointDto[]> {
     let params = new HttpParams();
 
-    // Csak akkor adjuk hozzá, ha nem null
     if (from) {
       params = params.set('from', from.toISOString());
     }
@@ -21,7 +20,6 @@ export class TelemetryService {
       params = params.set('to', to.toISOString());
     }
 
-    // Most már átmegy a params is!
     return this.api.get<TelemetryPointDto[]>(`/Telemetry/${deviceId}`, { params });
   }
 }

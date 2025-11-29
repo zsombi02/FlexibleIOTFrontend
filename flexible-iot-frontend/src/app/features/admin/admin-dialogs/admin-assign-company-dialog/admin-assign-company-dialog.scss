@@ -4,7 +4,7 @@ mat-form-field {
 }
 
 mat-dialog-content {
-  min-width: 300px; /* Desktop minimum */
+  min-width: 300px;
 
   @media (max-width: 600px) {
     min-width: unset;

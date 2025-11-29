@@ -19,20 +19,15 @@ import {DeviceAccessFacade} from '../../../core/base/devices-access-facade';
 })
 export class TelemetryPage implements OnInit {
   private auth = inject(AuthService);
-  // private devicesApi = inject(DevicesService); // Törölve
   private facade = inject(DeviceAccessFacade); // Új
 
-  // A felhasználó által látható eszközök - a facade-ból jön
   availableDevices = this.facade.devices;
 
-  // A widgetek dinamikus listája
   widgets = signal<TelemetryWidgetConfig[]>([]);
 
   ngOnInit() {
-    // Betöltés indítása a facade-on keresztül
     this.facade.loadDevices();
 
-    // Alapból adunk egy üres kártyát
     this.addWidget();
   }
 
@@ -52,6 +47,4 @@ export class TelemetryPage implements OnInit {
     this.widgets.update(list => list.filter(w => w.uuid !== uuid));
   }
 
-  // TÖRÖLVE: private loadDevices()
-  // TÖRÖLVE: private filterDevices(...)
 }

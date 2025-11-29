@@ -9,7 +9,6 @@
     <mat-label>Choose a Company</mat-label>
     <mat-select [(ngModel)]="selectedCompany">
 
-      <!-- Kivétel a cégből (Individual) -->
       <mat-option [value]="null">-- None (Individual) --</mat-option>
 
       @for (org of data.companies; track org.id) {
@@ -21,6 +20,5 @@
 
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>Cancel</button>
-  <!-- Visszaküldjük a kiválasztott cég nevét (vagy null-t) -->
   <button mat-raised-button color="primary" [mat-dialog-close]="selectedCompany">Save</button>
 </mat-dialog-actions>

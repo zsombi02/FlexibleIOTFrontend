@@ -17,7 +17,6 @@ class AdminService {
   }
 
   createUser(data: CreateUserRequest): Observable<any> {
-    // Az Auth endpointot használjuk user létrehozásra
     return this.api.post('/Auth/Register', data);
   }
 

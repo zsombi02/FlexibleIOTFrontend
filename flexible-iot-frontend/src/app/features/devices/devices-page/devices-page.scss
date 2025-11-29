@@ -97,26 +97,24 @@
 /* --- MOBIL RESPONSIVE --- */
 @media (max-width: 600px) {
   .page-container {
-    padding: 16px; /* Kisebb margó */
+    padding: 16px;
   }
 
   .page-header {
-    flex-direction: column; /* Egymás alá kerüljön a cím és a gomb */
+    flex-direction: column;
     align-items: flex-start;
     gap: 12px;
 
     button {
-      width: 100%; /* Gomb legyen teljes széles */
+      width: 100%;
     }
   }
 
-  /* Mobilon elrejtjük a kevésbé fontos oszlopokat a helytakarékosság miatt */
   .mat-column-id,
   .mat-column-type {
     display: none;
   }
 
-  /* A név oszlop legyen hangsúlyosabb */
   .mat-column-name {
     font-weight: bold;
   }

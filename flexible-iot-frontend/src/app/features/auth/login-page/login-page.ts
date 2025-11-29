@@ -1,5 +1,5 @@
 import {Component, inject, OnInit, signal} from '@angular/core';
-import {BaseComponent} from '../../../core/base/base';
+
 import {AuthService} from '../auth-api/auth-service';
 import {Router} from '@angular/router';
 import {LoginModel, RegisterModel} from '../auth-models/auth-models';
@@ -10,7 +10,7 @@ import {MatButton} from '@angular/material/button';
 import {MatInput} from '@angular/material/input';
 import {MatLineModule, MatOption} from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
-import {MatIconModule} from '@angular/material/icon'; // Ikonokhoz
+import {MatIconModule} from '@angular/material/icon';
 import {MatSlideToggle} from '@angular/material/slide-toggle';
 import AdminService from '../../admin/admin-api/admin-service';
 import {AdminOrganizationItem} from '../../admin/admin-models/admin-models';
@@ -36,16 +36,14 @@ import {of, switchMap, throwError} from 'rxjs';
   templateUrl: './login-page.html',
   styleUrl: './login-page.scss',
 })
-export class LoginPage extends BaseComponent implements OnInit {
+export class LoginPage  implements OnInit {
   private authService = inject(AuthService);
   private adminApi = inject(AdminService);
   private router = inject(Router);
 
-  // Állapot
   isLoginView = signal(true);
   isDemoRegistration = signal(false); // Demo mód kapcsoló
 
-  // Modellek
   loginModel = new LoginModel();
   registerModel = new RegisterModel();
 
@@ -53,7 +51,6 @@ export class LoginPage extends BaseComponent implements OnInit {
   errorMessage = signal('');
   successMessage = signal('');
 
-  // Demo szerepkörök
   availableRoles = ['Operator', 'Manager', 'Admin'];
   organizations = signal<AdminOrganizationItem[]>([]);
 
@@ -99,26 +96,22 @@ export class LoginPage extends BaseComponent implements OnInit {
       return;
     }
 
-    // Role logika beállítása
     if (!this.isDemoRegistration()) {
       this.registerModel.role = 'Operator';
       this.registerModel.organizationName = undefined;
     } else {
       if (this.registerModel.role !== 'Operator' && !this.registerModel.organizationName) {
-        // Opcionális validáció
+        // TODO
       }
     }
 
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    // --- LÁNCOLT FOLYAMAT: Register -> User ID keresés -> Cég hozzárendelés ---
     this.authService.register(this.registerModel).pipe(
       switchMap(() => {
-        // Ha van kiválasztva cég, akkor hozzá kell rendelnünk
         if (this.isDemoRegistration() && this.registerModel.organizationName) {
 
-          // Mivel a Register nem ad vissza ID-t, lekérjük a usereket email alapján
           return this.adminApi.getUsers().pipe(
             switchMap(users => {
               const newUser = users.find(u => u.email === this.registerModel.email);
@@ -133,7 +126,6 @@ export class LoginPage extends BaseComponent implements OnInit {
           );
         }
 
-        // Ha nem kell céget rendelni, kész vagyunk
         return of(null);
       })
     ).subscribe({

@@ -16,20 +16,18 @@
   flex: 1; /* Fele-fele arány */
 }
 
-/* Javított Material Form Field térközök */
 mat-form-field {
   width: 100%;
 }
 
-/* --- MOBILE RESPONSIVE --- */
 @media (max-width: 600px) {
   .form-col {
-    min-width: unset; /* Megszüntetjük a fix szélességet */
-    width: 100%;      /* Használja ki a rendelkezésre álló helyet */
+    min-width: unset;
+    width: 100%;
   }
 
   .row {
-    flex-direction: column; /* Egymás alá tördeljük a mezőket */
-    gap: 0; /* A mat-form-field marginja elég */
+    flex-direction: column;
+    gap: 0;
   }
 }

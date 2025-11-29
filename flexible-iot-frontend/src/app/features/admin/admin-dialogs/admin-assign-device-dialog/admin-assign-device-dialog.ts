@@ -25,8 +25,6 @@ export class AdminAssignDeviceDialog {
   selectedCompany: string | null = null;
 
   constructor() {
-    // Beállítjuk a jelenlegi céget alapértelmezettnek (ha van)
-    // Ha 'null', akkor az az Individual opció
     this.selectedCompany = this.data.device.company || null;
   }
 }

@@ -10,7 +10,6 @@ export class SimulationService {
   private basePath = '/Simulation';
 
   startAllSimulation(): Observable<any> {
-    // A C# kódban ez MapGet volt
     return this.api.get(`${this.basePath}/StartAllSimulation`);
   }
 
@@ -19,7 +18,6 @@ export class SimulationService {
   }
 
   startSimulation(deviceId: number): Observable<any> {
-    // Query paraméterként küldjük az ID-t
     return this.api.post(`${this.basePath}/StartSimulation?id=${deviceId}`, {});
   }
 

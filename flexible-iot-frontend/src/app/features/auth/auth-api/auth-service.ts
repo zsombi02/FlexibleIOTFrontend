@@ -24,7 +24,6 @@ export class AuthService {
 
   private readonly initialToken = localStorage.getItem(this.tokenKey);
 
-  // Alap adatok
   userToken = signal<string | null>(this.initialToken);
   userRoles = signal<string[]>(this.extractRoles(this.initialToken));
   userName = signal<string | null>(this.extractUser(this.initialToken));
@@ -92,7 +91,6 @@ export class AuthService {
     return this.userRoles().includes(role);
   }
 
-  // --- PRIVÁT SEGÉDFÜGGVÉNYEK ---
 
   private saveToken(token: string): void {
     localStorage.setItem(this.tokenKey, token);

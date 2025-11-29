@@ -81,10 +81,7 @@ export class BarChartStrategy implements ChartStrategy {
   }
 }
 
-/**
- * Factory (Gyártó minta - egyszerűsítve):
- * Segít kiválasztani a megfelelő stratégiát string alapján.
- */
+
 export class ChartStrategyFactory {
   static getStrategy(type: string): ChartStrategy {
     switch (type) {

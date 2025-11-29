@@ -16,8 +16,5 @@ export const routes: Routes = [
   { path: 'admin', component: AdminPage, title: 'Administration' },
   { path: 'login', component: LoginPage, title: 'Login' },
 
-  // auth később:
-  // { path: 'auth', component: AuthPageComponent, title: 'Sign in' },
-
   { path: '**', redirectTo: 'dashboard' }
 ];

@@ -4,14 +4,12 @@
     <div class="header-meta" *ngIf="dataCount() > 0">{{ dataCount() }} Data Points</div>
 
     <div class="header-actions">
-      <!-- EXPAND GOMB -->
       <button mat-icon-button (click)="toggleExpand()"
               [matTooltip]="isExpanded() ? 'Collapse' : 'Expand'"
               class="action-btn">
         <mat-icon>{{ isExpanded() ? 'close_fullscreen' : 'open_in_full' }}</mat-icon>
       </button>
 
-      <!-- REMOVE GOMB -->
       <button mat-icon-button class="action-btn remove" (click)="onRemove()">
         <mat-icon>close</mat-icon>
       </button>

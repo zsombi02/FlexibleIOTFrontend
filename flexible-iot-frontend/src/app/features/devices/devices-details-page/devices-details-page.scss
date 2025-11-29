@@ -14,7 +14,6 @@ header {
 
 .grid-layout {
   display: grid;
-  /* Desktop alap: Bal 400px, Jobb maradék */
   grid-template-columns: 400px 1fr;
   gap: 24px;
   align-items: start;
@@ -77,7 +76,6 @@ mat-card {
     color: #3f51b5;
     line-height: 1;
     margin-bottom: 8px;
-    /* Szép szövegárnyék a mélységért */
     text-shadow: 2px 2px 0px rgba(63, 81, 181, 0.1);
   }
 
@@ -114,7 +112,6 @@ mat-card {
   }
 }
 
-/* CHIPS & BADGES */
 .chip-id { background: #f0f0f0; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-family: monospace; font-weight: bold; color: #555; }
 .chip-company { background: #e3f2fd; color: #1565c0; padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; }
 .chip-individual { background: #f5f5f5; color: #666; padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; }
@@ -131,16 +128,13 @@ mat-card {
   header h1 { font-size: 24px; }
 
   .grid-layout {
-    grid-template-columns: 1fr; /* Egymás alá kerülnek */
+    grid-template-columns: 1fr;
     gap: 16px;
   }
 
-  /* A bal oszlop elemei ne nyúljanak meg nagyon szélesre, ha nem muszáj,
-     de mobilon általában a teljes szélesség jó. */
-
   .chart-card {
-    height: 400px; /* Kisebb chart mobilon */
-    order: -1; /* Opcionális: Ha azt akarod, hogy a chart legyen legfelül mobilon */
+    height: 400px;
+    order: -1;
   }
 
   .metric-card .big-value {

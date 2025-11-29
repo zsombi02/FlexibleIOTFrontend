@@ -1,5 +1,5 @@
 import {Component, effect, inject, OnInit, signal} from '@angular/core';
-import {BaseComponent} from '../../../core/base/base';
+
 import {ActivatedRoute} from '@angular/router';
 import {MatCardModule} from '@angular/material/card';
 import {CommonModule} from '@angular/common';
@@ -18,7 +18,7 @@ import {AdminUserItem} from '../../admin/admin-models/admin-models';
   templateUrl: './devices-details-page.html',
   styleUrl: './devices-details-page.scss',
 })
-export class DevicesDetailsPage extends BaseComponent implements OnInit {
+export class DevicesDetailsPage  implements OnInit {
   pageTitle = 'Device details';
 
   private route = inject(ActivatedRoute);
@@ -37,17 +37,13 @@ export class DevicesDetailsPage extends BaseComponent implements OnInit {
 
   chartOption = signal<EChartsOption | null>(null);
 
-  // Lokális history TÖRÖLVE, helyette a Service-t használjuk
 
   constructor() {
-    super();
     effect(() => {
-      // Ha jön új adat a telemetria feeden keresztül
       const feed = this.telemetry.telemetryFeed();
       const currentId = this.deviceId();
 
       if (feed.length > 0 && currentId > 0) {
-        // Megnézzük, van-e releváns adat az aktuális eszközhöz
         const myData = feed.find(d => (d.id) === currentId);
         if (myData) {
           this.updateLiveDataDisplay(myData.value, myData.timeStamp);
@@ -76,8 +72,6 @@ export class DevicesDetailsPage extends BaseComponent implements OnInit {
         this.loadOwnerDetails(d.ownerUserName);
       }
 
-      // Kezdő chart kirajzolása a már meglévő (Service-ben tárolt) adatokból!
-      // Így ha visszanavigálsz, nem üres a grafikon.
       this.updateChart();
     });
   }
@@ -100,7 +94,6 @@ export class DevicesDetailsPage extends BaseComponent implements OnInit {
   }
 
   private updateChart() {
-    // Service-ből kérjük le az adatokat
     const history = this.telemetry.getDeviceHistory(this.deviceId());
 
     this.chartOption.set({

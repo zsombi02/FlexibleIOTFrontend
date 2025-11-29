@@ -1,5 +1,5 @@
 import {Component, effect, inject, OnInit, signal} from '@angular/core';
-import {BaseComponent} from '../../../core/base/base';
+
 import {MatCard, MatCardContent, MatCardTitle} from '@angular/material/card';
 import {MatIconModule} from '@angular/material/icon';
 import {MatButton, MatButtonModule, MatIconButton} from '@angular/material/button';
@@ -34,7 +34,7 @@ import {DeviceAccessFacade} from '../../../core/base/devices-access-facade';
   templateUrl: './admin-page.html',
   styleUrl: './admin-page.scss'
 })
-export class AdminPage extends BaseComponent implements OnInit {
+export class AdminPage  implements OnInit {
   private adminApi = inject(AdminService);
   private deviceApi = inject(DevicesService);
   private deviceFacade = inject(DeviceAccessFacade); // ÚJ
@@ -52,7 +52,6 @@ export class AdminPage extends BaseComponent implements OnInit {
   assignments = this.deviceFacade.devices;
 
   constructor() {
-    super();
     effect(() => {
       if (this.authService.isHydrated()) {
         this.checkAccessAndLoad();
@@ -77,8 +76,6 @@ export class AdminPage extends BaseComponent implements OnInit {
 
     if (isManager || this.authService.hasRole('Admin')) {
       this.loadCompanies();
-      // RÉGI: this.loadAssignments(); --> TÖRÖLVE
-      // ÚJ:
       this.deviceFacade.loadDevices();
     }
   }
@@ -104,10 +101,6 @@ export class AdminPage extends BaseComponent implements OnInit {
   loadCompanies() {
     this.adminApi.getCompanies().subscribe(res => this.organizations.set(res));
   }
-
-  // TÖRÖLVE: loadAssignments() metódus (mert a facade végzi)
-
-  // ... (A User Actions és Organization Actions részek változatlanok) ...
 
   openAddUserDialog() {
     if (!this.authService.hasRole('Manager') && !this.authService.hasRole('Admin')) return;
@@ -289,13 +282,11 @@ export class AdminPage extends BaseComponent implements OnInit {
       description: ''
     };
     this.deviceApi.updateDevice(device.id, updateDto).subscribe(() => {
-      // ÚJ: Itt is a facade-ot frissítjük az Assignment lista helyett
       this.deviceFacade.loadDevices();
     });
   }
 }
 
-// ... Helper Dialogs (Maradnak a fájl végén, változatlanul) ...
 @Component({
   selector: 'app-admin-confirm-dialog',
   standalone: true,

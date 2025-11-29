@@ -27,7 +27,7 @@
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   z-index: 10;
   position: relative;
-  flex-shrink: 0; // Ne nyomódjon össze
+  flex-shrink: 0;
 }
 
 .app-logo-text {
@@ -65,13 +65,12 @@
   border-radius: 20px;
 }
 
-/* --- SIDENAV & CONTENT --- */
 .app-sidenav-container {
-  flex: 1; // Kitölti a maradék helyet a toolbar alatt
+  flex: 1;
 }
 
 .app-sidenav {
-  width: 250px; // Menü szélessége
+  width: 250px;
 }
 
 .app-content {
@@ -82,12 +81,11 @@
 }
 
 .active-list-item {
-  background-color: rgba(63, 81, 181, 0.1); // Halványkék háttér az aktív elemnek mobilon
+  background-color: rgba(63, 81, 181, 0.1);
   color: #3f51b5;
 }
 
 
-/* --- RESPONSIVE LOGIKA (MEDIA QUERIES) --- */
 
 /* Alapállapot: Desktop (Minden látszik, Hamburger rejtve) */
 .mobile-menu-btn { display: none; }

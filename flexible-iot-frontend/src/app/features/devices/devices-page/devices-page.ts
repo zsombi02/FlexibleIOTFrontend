@@ -1,5 +1,5 @@
 import {Component, inject, OnInit, signal} from '@angular/core';
-import {BaseComponent} from '../../../core/base/base';
+
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
@@ -21,37 +21,28 @@ import {DeviceAccessFacade} from '../../../core/base/devices-access-facade';
   templateUrl: './devices-page.html',
   styleUrl: './devices-page.scss'
 })
-export class DevicesPage extends BaseComponent implements OnInit {
+export class DevicesPage  implements OnInit {
   pageTitle = 'Devices';
 
   private api = inject(DevicesService);
-  protected auth = inject(AuthService); // Marad, mert a 'canEdit' használja
+  protected auth = inject(AuthService);
   private dialog = inject(MatDialog);
 
-  // ÚJ: Facade
   protected facade = inject(DeviceAccessFacade);
 
-  // A devices signal mostantól a facade-ra mutat
   devices = this.facade.devices;
 
   displayedColumns: string[] = ['id', 'name', 'type', 'company', 'owner', 'actions'];
 
   ngOnInit() {
-    // RÉGI: this.loadDevices(); --> TÖRÖLVE
-
-    // ÚJ:
     this.facade.loadDevices();
   }
-
-  // TÖRÖLVE: loadDevices() metódus (a szűrési logikával együtt)
-  // TÖRÖLVE: filterDevices() metódus
 
   openCreateDialog() {
     const dialogRef = this.dialog.open(DevicesAddDeviceDialogComponent, {
       width: '500px', data: { mode: 'create' }
     });
     dialogRef.afterClosed().subscribe((res: CreateDeviceRequest) => {
-      // Siker esetén a facade-ot kérjük meg az újratöltésre
       if (res) this.api.createDevice(res).subscribe(() => this.facade.loadDevices());
     });
   }

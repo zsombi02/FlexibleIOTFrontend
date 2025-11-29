@@ -24,13 +24,11 @@ import {AuthService} from './features/auth/auth-api/auth-service';
   styleUrl: './app.scss'
 })
 class App {
-  // Injektáljuk a service-t és a routert
   protected authService = inject(AuthService);
   private router = inject(Router);
 
   protected readonly title = signal('flexible-iot-frontend');
 
-  // Computed signal: automatikusan frissül, ha a userToken változik a service-ben
   protected isLoggedIn = computed(() => !!this.authService.userToken());
 
   readonly navItems = [
