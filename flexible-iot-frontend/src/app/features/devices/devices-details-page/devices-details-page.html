@@ -18,20 +18,20 @@
     <div class="left-col">
       <mat-card class="info-card">
         <mat-card-header>
-          <mat-card-title>Adatok</mat-card-title>
+          <mat-card-title>Device Details</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <div class="row"><span>Topic:</span> <strong class="mono">{{ device()?.topic }}</strong></div>
-          <div class="row"><span>Típus:</span> <strong>{{ device()?.type }}</strong></div>
-          <div class="row"><span>Időköz:</span> <strong>{{ device()?.timeInterval }}s</strong></div>
-          <div class="row"><span>Regisztrálva:</span> <span>{{ device()?.registeredAt | date }}</span></div>
+          <div class="row"><span>Type:</span> <strong>{{ device()?.type }}</strong></div>
+          <div class="row"><span>Time Interval:</span> <strong>{{ device()?.timeInterval }}s</strong></div>
+          <div class="row"><span>Registrated:</span> <span>{{ device()?.registeredAt | date }}</span></div>
         </mat-card-content>
       </mat-card>
 
       <!-- TULAJDONOS KÁRTYA -->
       <mat-card class="owner-card">
         <mat-card-header>
-          <mat-card-title>Tulajdonos</mat-card-title>
+          <mat-card-title>Owner</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           @let owner = ownerDetails();
@@ -56,9 +56,9 @@
       <!-- LIVE METRIC -->
       <mat-card class="metric-card">
         <mat-card-content>
-          <h3>Legfrissebb adat</h3>
+          <h3>Live Data</h3>
           <div class="big-value">{{ lastValue() }}</div>
-          <div class="timestamp">Frissítve: {{ lastUpdated() }}</div>
+          <div class="timestamp">Last Updated: {{ lastUpdated() }}</div>
         </mat-card-content>
       </mat-card>
     </div>
@@ -71,7 +71,7 @@
           @if (opts) {
             <div echarts [options]="opts" class="echart"></div>
           } @else {
-            <div class="waiting">Várakozás adatokra...</div>
+            <div class="waiting">Waiting for Data...</div>
           }
         </mat-card-content>
       </mat-card>

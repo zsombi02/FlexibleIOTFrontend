@@ -14,9 +14,7 @@ export interface AdminUserItem {
 export interface AdminOrganizationItem {
   id: number;
   name: string;
-  // A backend jelenleg nem ad vissza countokat, ezeket opcionálissá tesszük
-  userCount?: number;
-  deviceCount?: number;
+
 }
 
 // Backend: RegisterUserDto (User létrehozáshoz)

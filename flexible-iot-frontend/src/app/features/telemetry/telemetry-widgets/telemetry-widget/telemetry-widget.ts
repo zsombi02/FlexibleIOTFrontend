@@ -1,4 +1,4 @@
-import {Component, EventEmitter, inject, Input, OnInit, Output, signal} from '@angular/core';
+import {Component, EventEmitter, HostBinding, inject, Input, OnInit, Output, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -14,12 +14,14 @@ import {EChartsOption} from 'echarts';
 import {TelemetryWidgetConfig} from '../../telemetry-models/telemetry-models';
 import {DeviceItem} from '../../../devices/devices-models/devices-models';
 import {TelemetryService} from '../../telemetry-api/telemetry-service';
+import {MatTooltipModule} from '@angular/material/tooltip';
+
 @Component({
   selector: 'app-telemetry-widget',
   imports: [
     CommonModule, MatCardModule, MatFormFieldModule, MatSelectModule,
     MatDatepickerModule, MatNativeDateModule, MatButtonModule, MatIconModule,
-    MatInputModule, FormsModule, NgxEchartsDirective
+    MatInputModule, FormsModule, NgxEchartsDirective, MatTooltipModule
   ],
   templateUrl: './telemetry-widget.html',
   styleUrl: './telemetry-widget.scss',
@@ -35,32 +37,36 @@ export class TelemetryWidget implements OnInit {
   isLoading = signal<boolean>(false);
   dataCount = signal<number>(0);
 
-  // --- ÚJ: GYORSVÁLASZTÓ OPCIÓK ---
+  // ÚJ: Kiszélesítés állapota
+  isExpanded = signal<boolean>(false);
+
+  @HostBinding('class.expanded-widget')
+  get expandedClass() {
+    return this.isExpanded();
+  }
+
   timeRanges = [
-    { value: 30, label: 'Utolsó 30 perc' },
-    { value: 60, label: 'Utolsó 1 óra' },
-    { value: 360, label: 'Utolsó 6 óra' },
-    { value: 1440, label: 'Utolsó 24 óra' },
-    { value: 0, label: 'Egyéni időszak' } // 0 = Custom
+    { value: 30, label: 'Last 30 minutes' },
+    { value: 60, label: 'Last 1 hour' },
+    { value: 360, label: 'Last 6 hours' },
+    { value: 1440, label: 'Last 24 hours' },
+    { value: 0, label: 'Custom Interval' }
   ];
 
-  // Alapértelmezés: 30 perc
   selectedRangeValue = 30;
 
   chartTypes = [
-    { value: 'line', label: 'Vonal (Line)' },
-    { value: 'area', label: 'Terület (Area)' },
-    { value: 'bar', label: 'Oszlop (Bar)' }
+    { value: 'line', label: 'Line' },
+    { value: 'area', label: 'Area' },
+    { value: 'bar', label: 'Bar' }
   ];
 
   ngOnInit() {
-    // Ha már van mentett dátum, és az nem friss, akkor 'Egyéni'-re állítjuk
     if (this.config.dateFrom && this.config.dateTo) {
       this.selectedRangeValue = 0;
     }
 
     if (this.config.deviceId) {
-      // Ha nincs dátum (pl. most hoztuk létre), beállítjuk a defaultot
       if (!this.config.dateFrom) {
         this.updateDateRangeByPreset(30);
       }
@@ -68,7 +74,14 @@ export class TelemetryWidget implements OnInit {
     }
   }
 
-  // Eszköz váltáskor reseteljük 30 percre
+  // ÚJ: Toggle funkció
+  toggleExpand() {
+    this.isExpanded.update(v => !v);
+
+    // Tipp: Ha az ECharts nem méreteződne át azonnal, itt lehetne manuálisan triggerelni,
+    // de az ngx-echarts általában kezeli.
+  }
+
   onDeviceChange() {
     this.selectedRangeValue = 30;
     this.updateDateRangeByPreset(30);
@@ -85,29 +98,24 @@ export class TelemetryWidget implements OnInit {
     this.remove.emit(this.config.uuid);
   }
 
-  // --- RANGE VÁLTÁS LOGIKA ---
   onRangeChange(value: number) {
     if (value > 0) {
-      // Preset választásakor kiszámoljuk a dátumokat
       this.updateDateRangeByPreset(value);
       this.loadData();
     }
-    // Ha 0 (Egyéni), akkor nem csinálunk semmit, a user írja be
   }
 
   private updateDateRangeByPreset(minutes: number) {
     const end = new Date();
     const start = new Date(end.getTime() - (minutes * 60 * 1000));
-
     this.config.dateTo = end;
     this.config.dateFrom = start;
   }
 
-  // --- DATETIME STRING KONVERZIÓK (Inputhoz) ---
   get dateFromStr(): string { return this.toDateTimeLocal(this.config.dateFrom); }
   set dateFromStr(val: string) {
     this.config.dateFrom = val ? new Date(val) : null;
-    this.selectedRangeValue = 0; // Kézi állításnál átváltunk Custom-ra
+    this.selectedRangeValue = 0;
     this.loadData();
   }
 
@@ -129,7 +137,6 @@ export class TelemetryWidget implements OnInit {
       pad(date.getSeconds());
   }
 
-  // --- API ---
   loadData() {
     if (!this.config.deviceId) return;
     this.isLoading.set(true);
@@ -172,7 +179,6 @@ export class TelemetryWidget implements OnInit {
         boundaryGap: this.config.chartType === 'bar'
       },
       yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed' } } },
-      dataZoom: [ { type: 'inside' }, { type: 'slider', height: 20, bottom: 5 } ],
       series: [{
         data: values,
         type: type as any,

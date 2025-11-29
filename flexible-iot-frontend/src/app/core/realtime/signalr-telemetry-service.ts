@@ -3,6 +3,11 @@ import * as signalR from '@microsoft/signalr';
 import {environment} from '../../../environments/environment';
 import {TelemetryData} from '../../features/telemetry/telemetry-models/telemetry-models';
 
+export interface ChartDataPoint {
+  name: string;
+  value: [string, number];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -10,11 +15,19 @@ export class SignalrTelemetryService {
   private hubConnection?: signalR.HubConnection;
 
   private _telemetryFeed = signal<TelemetryData[]>([]);
-
   public connectionStatus = signal<string>('Disconnected');
+
+  // KÖZPONTI HISTORY TÁROLÓ: Map<DeviceId, ArrayOfPoints>
+  // Ez éli túl a navigációt.
+  private deviceHistoryMap = new Map<number, ChartDataPoint[]>();
 
   get telemetryFeed() {
     return this._telemetryFeed;
+  }
+
+  // Publikus metódus, hogy a komponensek elkérhessék a history-t
+  getDeviceHistory(deviceId: number): ChartDataPoint[] {
+    return this.deviceHistoryMap.get(deviceId) || [];
   }
 
   init(): void {
@@ -27,7 +40,7 @@ export class SignalrTelemetryService {
 
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl)
-      .withAutomaticReconnect() // Ez nagyon fontos!
+      .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Information)
       .build();
 
@@ -36,9 +49,6 @@ export class SignalrTelemetryService {
     this.hubConnection.on('Connected', (connectionId: string) => {
       console.log('✅ SignalR connected. ID:', connectionId);
       this.connectionStatus.set('Online');
-
-      // FONTOS: Olyan csoportba lépj be, ahova a backend küld!
-      // A backend kód alapján a "MainGroup" tűnik logikusnak a broadcastra
       this.hubConnection?.invoke('JoinGroup', 'MainGroup')
         .catch(err => console.error('JoinGroup error', err));
     });
@@ -48,7 +58,6 @@ export class SignalrTelemetryService {
       this.connectionStatus.set('Offline');
     });
 
-    // RECONNECT ESEMÉNYEK (hogy látszódjon a UI-on ha baj van)
     this.hubConnection.onreconnecting(() => {
       console.log('🔄 SignalR reconnecting...');
       this.connectionStatus.set('Reconnecting...');
@@ -57,24 +66,45 @@ export class SignalrTelemetryService {
     this.hubConnection.onreconnected((connectionId) => {
       console.log('✅ SignalR reconnected. ID:', connectionId);
       this.connectionStatus.set('Online');
-      // Újracsatlakozáskor újra be kell lépni a csoportba!
       this.hubConnection?.invoke('JoinGroup', 'MainGroup');
     });
 
     // --- ADATFOGADÁS ---
 
     this.hubConnection.on('telemetryMessage', (data: TelemetryData) => {
-      console.log('TelemetryMessage:', data);
-
+      // 1. Frissítjük a Feed Signal-t (ez triggereli az effect-eket a komponensekben)
       this._telemetryFeed.update(current => {
-        // Új adat az elejére, maximum 50-et tartunk meg a memóriában
         return [data, ...current].slice(0, 500);
       });
+
+      // 2. Frissítjük a központi History-t a grafikonokhoz
+      this.addToCentralHistory(data);
     });
 
     this.hubConnection.on('AcknowledgeHappened', () => {
       console.log('AcknowledgeHappened');
     });
+  }
+
+  private addToCentralHistory(data: TelemetryData) {
+    const devId = data.id || 0;
+    if (!this.deviceHistoryMap.has(devId)) {
+      this.deviceHistoryMap.set(devId, []);
+    }
+
+    const history = this.deviceHistoryMap.get(devId)!;
+    const timeStr = new Date(data.timeStamp).toLocaleTimeString();
+
+    // ECharts formátum
+    history.push({
+      name: timeStr,
+      value: [timeStr, Number(data.value)]
+    });
+
+    // Memória védelem: Max 50 pont / eszköz
+    if (history.length > 50) {
+      history.shift();
+    }
   }
 
   async start(): Promise<void> {
@@ -86,7 +116,6 @@ export class SignalrTelemetryService {
       this.connectionStatus.set('Connecting...');
       try {
         await this.hubConnection.start();
-        // A 'Connected' esemény majd beállítja az 'Online'-t
       } catch (err) {
         console.error('SignalR start error:', err);
         this.connectionStatus.set('Error');

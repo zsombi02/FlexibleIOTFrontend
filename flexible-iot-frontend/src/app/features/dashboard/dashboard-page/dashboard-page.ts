@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, OnInit, signal} from '@angular/core';
+import {Component, computed, effect, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {BaseComponent} from '../../../core/base/base';
 import {DashboardLiveFeedItem, DashboardStatCard} from '../dashboard-models/dashboard-models';
 import {MatCardModule} from '@angular/material/card';
@@ -11,6 +11,16 @@ import {CommonModule} from '@angular/common';
 import {MatTabsModule} from '@angular/material/tabs';
 import {EChartsOption} from 'echarts';
 import {NgxEchartsDirective} from 'ngx-echarts';
+import {FormsModule} from '@angular/forms';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {SimulationService} from '../dashboard-api/simulation-service';
+import {MatFormField} from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import {MatSlideToggle} from '@angular/material/slide-toggle';
+import {MatSelectModule} from '@angular/material/select';
+import {MatButton} from '@angular/material/button';
+
+
 
 @Component({
   selector: 'app-dashboard-page',
@@ -20,17 +30,25 @@ import {NgxEchartsDirective} from 'ngx-echarts';
     MatCardModule,
     MatTabsModule,
     MatIconModule,
-    NgxEchartsDirective
+    NgxEchartsDirective,
+    MatInputModule,
+    MatFormField,
+    FormsModule,
+    MatSlideToggle,
+    MatSelectModule,
+    MatButton,
   ],
   templateUrl: './dashboard-page.html',
   styleUrl: './dashboard-page.scss',
 })
-export class DashboardPage extends BaseComponent implements OnInit {
+export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
   pageTitle = 'Dashboard';
 
   private telemetry = inject(SignalrTelemetryService);
   private deviceApi = inject(DevicesService);
   private authService = inject(AuthService);
+  private simulationService = inject(SimulationService);
+  private snackBar = inject(MatSnackBar);
 
   connectionStatus = this.telemetry.connectionStatus;
 
@@ -39,22 +57,18 @@ export class DashboardPage extends BaseComponent implements OnInit {
   liveFeedItems = signal<DashboardLiveFeedItem[]>([]);
   statCards = signal<DashboardStatCard[]>([]);
 
-  systemInfoCards = signal([
-    { title: 'CPU Terhelés', value: '42%', icon: 'memory', color: '#3f51b5' },
-    { title: 'Memória', value: '1.2 GB', icon: 'storage', color: '#e91e63' },
-    { title: 'Hálózat', value: '24 Mb/s', icon: 'router', color: '#009688' },
-    { title: 'Szerver fut', value: '14n 2ó', icon: 'schedule', color: '#ff9800' }
-  ]);
+  // Simulation Controls
+  demoMode = signal<boolean>(false);
+  selectedSimDeviceId = signal<number | null>(null);
 
   // Chart logika
   selectedDeviceId = signal<number | null>(null);
   chartOption = signal<EChartsOption | null>(null);
 
-  private deviceHistoryMap = new Map<number, { name: string, value: [string, number] }[]>();
-
-  // LIVE DOT LOGIKA: Map<DeviceId, LastTimestamp>
-  // Tároljuk, mikor jött utoljára adat az eszköztől
+  // Live Dot logika
   private lastSeenMap = signal<Map<number, number>>(new Map());
+  private now = signal(Date.now());
+  private refreshInterval: any;
 
   private deviceLookup = computed(() => {
     const map = new Map<number, DeviceItem>();
@@ -66,31 +80,26 @@ export class DashboardPage extends BaseComponent implements OnInit {
     super();
 
     effect(() => {
+      // 1. Figyeljük a Feed változását a Service-ben
       const rawFeed = this.telemetry.telemetryFeed();
       const lookup = this.deviceLookup();
       const mappedFeed: DashboardLiveFeedItem[] = [];
 
-      // Feldolgozzuk a legfrissebb adatot a chart-hoz és a Live Dot-hoz
+      // 2. Ha jött új adat, frissítjük a Live Dot timestampjét és a Chartot
       if (rawFeed.length > 0) {
         const latest = rawFeed[0];
         const devId = latest.id || 0;
-        const device = lookup.get(devId);
 
-        if (device) {
-          // 1. Chart history frissítése
-          this.addToHistory(devId, latest.timeStamp, Number(latest.value));
+        // Live Dot frissítése
+        this.updateLastSeen(devId);
 
-          // 2. LIVE DOT Frissítése: elmentjük a mostani időbélyeget
-          this.updateLastSeen(devId);
-
-          // 3. Ha ez a tab aktív, újrarajzoljuk a grafikont
-          if (this.selectedDeviceId() === devId) {
-            this.updateChartForDevice(devId);
-          }
+        // Chart frissítése (ha épp ez a tab van nyitva)
+        if (this.selectedDeviceId() === devId) {
+          this.updateChartForDevice(devId);
         }
       }
 
-      // Feed generálás (jobb oldali sáv)
+      // 3. Feed generálás (jobb oldali sáv)
       for (const t of rawFeed) {
         const dev = lookup.get(t.id || 0);
         if (dev) {
@@ -112,20 +121,79 @@ export class DashboardPage extends BaseComponent implements OnInit {
   ngOnInit() {
     this.initData();
     this.telemetry.start().catch(err => console.error(err));
+
+    // Live Dot ticker
+    this.refreshInterval = setInterval(() => {
+      this.now.set(Date.now());
+    }, 1000);
   }
 
-  // --- LIVE DOT HELPER ---
-  // A template hívja meg: akkor "élő", ha az elmúlt 10 másodpercben jött adat
+  ngOnDestroy() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+  }
+
+  toggleDemoMode(isActive: boolean) {
+    this.demoMode.set(isActive);
+    if (!isActive) {
+      this.selectedSimDeviceId.set(null);
+    }
+  }
+
+  onStartAllSim() {
+    if (!this.demoMode()) return;
+    this.simulationService.startAllSimulation().subscribe({
+      next: () => this.showSnack('Összes szimuláció elindítva'),
+      error: () => this.showSnack('Hiba az indításnál', true)
+    });
+  }
+
+  onStopAllSim() {
+    if (!this.demoMode()) return;
+    this.simulationService.stopAllSimulation().subscribe({
+      next: () => this.showSnack('Összes szimuláció leállítva'),
+      error: () => this.showSnack('Hiba a leállításnál', true)
+    });
+  }
+
+  onStartDeviceSim() {
+    const id = this.selectedSimDeviceId();
+    if (!this.demoMode() || !id) return;
+    this.simulationService.startSimulation(id).subscribe({
+      next: () => this.showSnack(`Szimuláció indítva (ID: ${id})`),
+      error: () => this.showSnack('Hiba', true)
+    });
+  }
+
+  onStopDeviceSim() {
+    const id = this.selectedSimDeviceId();
+    if (!this.demoMode() || !id) return;
+    this.simulationService.stopSimulation(id).subscribe({
+      next: () => this.showSnack(`Szimuláció leállítva (ID: ${id})`),
+      error: () => this.showSnack('Hiba', true)
+    });
+  }
+
+  private showSnack(msg: string, isError = false) {
+    this.snackBar.open(msg, 'OK', { duration: 3000, panelClass: isError ? 'snack-error' : 'snack-success' });
+  }
+
   isDeviceLive(devId: number): boolean {
     const lastSeen = this.lastSeenMap().get(devId);
     if (!lastSeen) return false;
 
-    // Ha 10 másodpercen belüli az adat, akkor "zöld"
-    return (Date.now() - lastSeen) < 10000;
+    const device = this.deviceLookup().get(devId);
+    let threshold = 10000; // Default 10 sec
+
+    if (device?.timeInterval) {
+      threshold = (device.timeInterval * 1000) + 5000; // Interval + 5 sec buffer
+    }
+
+    return (this.now() - lastSeen) < threshold;
   }
 
   private updateLastSeen(devId: number) {
-    // Frissítjük a Map-et új referenciával, hogy a Signal érzékelje a változást a template-ben
     this.lastSeenMap.update(map => {
       const newMap = new Map(map);
       newMap.set(devId, Date.now());
@@ -137,7 +205,6 @@ export class DashboardPage extends BaseComponent implements OnInit {
     this.deviceApi.getAllDevices().subscribe({
       next: (devices) => {
         this.filterDevicesByRole(devices);
-        // Alapból válasszuk ki az elsőt
         if (this.myDevices().length > 0) {
           this.selectedDeviceId.set(this.myDevices()[0].id);
           this.updateChartForDevice(this.myDevices()[0].id);
@@ -155,26 +222,16 @@ export class DashboardPage extends BaseComponent implements OnInit {
     }
   }
 
-  private addToHistory(devId: number, time: string | Date, value: number) {
-    if (!this.deviceHistoryMap.has(devId)) {
-      this.deviceHistoryMap.set(devId, []);
-    }
-    const history = this.deviceHistoryMap.get(devId)!;
-    const timeStr = new Date(time).toLocaleTimeString();
-    history.push({ name: timeStr, value: [timeStr, value] });
-
-    // Max 50 pont
-    if (history.length > 50) history.shift();
-  }
-
   private updateChartForDevice(devId: number) {
-    const data = this.deviceHistoryMap.get(devId) || [];
+    // ITT A VÁLTOZÁS: A Service-ből kérjük el a history-t
+    const data = this.telemetry.getDeviceHistory(devId);
+
     const device = this.deviceLookup().get(devId);
     if (!device) return;
 
     if (data.length === 0) {
-      this.chartOption.set(null);
-      return;
+      // Ha még nincs adat, nullázhatjuk, vagy hagyhatjuk a régit (opcionális)
+      // Most hagyjuk, hogy üres legyen
     }
 
     this.chartOption.set({
@@ -204,7 +261,7 @@ export class DashboardPage extends BaseComponent implements OnInit {
           }
         },
         lineStyle: { width: 3, color: '#3f51b5' },
-        data: data
+        data: data // A Service-ből jövő adat
       }],
       animationDuration: 500
     });
@@ -219,14 +276,15 @@ export class DashboardPage extends BaseComponent implements OnInit {
     let filtered: DeviceItem[] = [];
     if (isManager) filtered = devices;
     else if (isAdmin) filtered = devices.filter(d => (myCompany && d.company === myCompany) || d.ownerUserName === myUserName);
-    else filtered = devices.filter(d => d.ownerUserName === myUserName);
+    else filtered = devices.filter(d => d.ownerUserName === myUserName ||
+        (myCompany && d.company === myCompany));
     this.myDevices.set(filtered);
   }
 
   private updateStats() {
     this.statCards.set([
-      { id: 'devs', title: 'Eszközök', value: this.myDevices().length.toString(), subtitle: 'Elérhető' },
-      { id: 'status', title: 'Kapcsolat', value: this.connectionStatus(), subtitle: 'SignalR' }
+      { id: 'devs', title: 'Devices', value: this.myDevices().length.toString(), subtitle: 'Available' },
+      { id: 'status', title: 'Status', value: this.connectionStatus(), subtitle: 'SignalR' }
     ]);
   }
 

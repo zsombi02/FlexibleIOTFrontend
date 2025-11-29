@@ -1,19 +1,81 @@
-.app-shell {
-  height: 100vh;
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; // Teljes magasság
 }
 
-/* alap: desktop */
-mat-sidenav {
-  width: 240px;
+.main-toolbar {
+  // Opcionális: kis árnyék, hogy elváljon a tartalomtól
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  z-index: 10;
+  position: relative;
 }
 
-/* mobil breakpoint */
-@media (max-width: 768px) {
-  mat-sidenav {
-    width: 0;         // vagy over mode
-  }
+.app-logo-text {
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-right: 24px; // Távolság a menüpontoktól
+  letter-spacing: 1px;
+}
 
-  .app-content {
-    padding: 8px;
+.nav-links {
+  display: flex;
+  gap: 8px; // Gombok közti távolság
+
+  a[mat-button] {
+    opacity: 0.85; // Kicsit halványabb, ha nem aktív
+
+    // Aktív menüpont stílusa
+    &.active-link {
+      background-color: rgba(255, 255, 255, 0.15);
+      opacity: 1;
+    }
+
+    // Mobil nézetben esetleg elrejthetjük a szöveget, ha kell
+    .nav-label {
+      margin-left: 6px;
+    }
   }
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.app-content {
+  flex: 1;          // Kitölti a maradék helyet
+  overflow: auto;   // Csak a tartalom görgessen, a fejléc maradjon
+  padding: 16px;
+  background-color: #f5f5f5; // Opcionális háttérszín a tartalomnak
+}
+
+/* --- USER INFO STÍLUS (A korábbi kérésedből) --- */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 16px;
+  font-size: 0.9rem;
+
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: inherit;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 4px;
+  white-space: nowrap;
+  vertical-align: middle;
 }

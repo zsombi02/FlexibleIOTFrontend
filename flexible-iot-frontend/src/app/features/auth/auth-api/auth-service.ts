@@ -1,6 +1,6 @@
-import {inject, Injectable, signal} from '@angular/core';
+import {computed, inject, Injectable, signal} from '@angular/core';
 import {AuthRestApi} from './auth-rest-api';
-import {LoginModel, TokenModel} from '../auth-models/auth-models';
+import {LoginModel, RegisterModel, TokenModel} from '../auth-models/auth-models';
 import { jwtDecode } from "jwt-decode";
 import {map} from 'rxjs';
 import {ApiClient} from '../../../core/http/api-client';
@@ -28,13 +28,15 @@ export class AuthService {
   userToken = signal<string | null>(this.initialToken);
   userRoles = signal<string[]>(this.extractRoles(this.initialToken));
   userName = signal<string | null>(this.extractUser(this.initialToken));
+  userRoleLabel = computed(() => {
+    const roles = this.userRoles;
+    return roles && roles().length > 0 ? roles().at(0) : '';
+  });
 
-  // "Felokosított" adatok
   currentUserId = signal<string | null>(null);
   currentUserCompany = signal<string | null>(null);
   isHydrated = signal<boolean>(false);
 
-  // --- PUBLIKUS METÓDUSOK ---
 
   login(model: LoginModel) {
     return this.authApi.login(model).pipe(
@@ -42,6 +44,10 @@ export class AuthService {
         this.saveToken(tokenModel.accessToken);
       })
     );
+  }
+
+  register(model: RegisterModel) {
+    return this.authApi.register(model);
   }
 
   logout(): void {
@@ -55,11 +61,9 @@ export class AuthService {
     this.isHydrated.set(false);
   }
 
-  // --- EZT A METÓDUST HIÁNYOLTA AZ INTERCEPTOR ---
   getToken(): string | null {
     return this.userToken();
   }
-  // -----------------------------------------------
 
   hydrateUserData() {
     const email = this.userName();
@@ -68,7 +72,6 @@ export class AuthService {
     this.apiClient.get<AdminUserItem[]>('/Users').subscribe({
       next: (users) => {
         const me = users.find(u => u.email === email || u.name === email);
-
         if (me) {
           console.log('User Hydrated:', me);
           this.currentUserId.set(me.id);

@@ -2,19 +2,21 @@ import {Component, effect, inject, OnInit, signal} from '@angular/core';
 import {BaseComponent} from '../../../core/base/base';
 import {MatCard, MatCardContent, MatCardTitle} from '@angular/material/card';
 import {MatIconModule} from '@angular/material/icon';
-import {MatButton, MatIconButton} from '@angular/material/button';
+import {MatButton, MatButtonModule, MatIconButton} from '@angular/material/button';
 import {AdminOrganizationItem, AdminUserItem, CreateUserRequest} from '../admin-models/admin-models';
-import {MatDialog, MatDialogModule} from '@angular/material/dialog';
+import {MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {AuthService} from '../../auth/auth-api/auth-service';
 import {Router} from '@angular/router';
 import AdminService from '../admin-api/admin-service';
 import {AdminAddUserDialogComponent} from '../admin-dialogs/admin-add-user-dialog/admin-add-user-dialog';
-import {
-  AdminAssignCompanyDialogComponent
-} from '../admin-dialogs/admin-assign-company-dialog/admin-assign-company-dialog';
+import {AdminAssignCompanyDialogComponent} from '../admin-dialogs/admin-assign-company-dialog/admin-assign-company-dialog';
 import {CreateDeviceRequest, DeviceItem} from '../../devices/devices-models/devices-models';
 import {DevicesService} from '../../devices/devices-api/devices-service';
 import {AdminAssignDeviceDialog} from '../admin-dialogs/admin-assign-device-dialog/admin-assign-device-dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {FormsModule} from '@angular/forms';
 
 @Component({
   selector: 'app-admin-page',
@@ -37,6 +39,7 @@ export class AdminPage extends BaseComponent implements OnInit {
   private dialog = inject(MatDialog);
   private router = inject(Router);
   protected authService = inject(AuthService);
+  private snackBar = inject(MatSnackBar);
 
   pageTitle = 'Administration';
 
@@ -114,25 +117,23 @@ export class AdminPage extends BaseComponent implements OnInit {
     });
   }
 
-  // --- USER ACTIONS (VISSZAÁLLÍTVA!) ---
+  // --- USER ACTIONS ---
 
   openAddUserDialog() {
     if (!this.authService.hasRole('Manager') && !this.authService.hasRole('Admin')) return;
 
     const dialogRef = this.dialog.open(AdminAddUserDialogComponent, { width: '400px' });
 
-    dialogRef.afterClosed().subscribe((req: CreateUserRequest) => {
-      if (req) {
-        this.createUserProcess(req);
-      }
-    });
-  }
+    dialogRef.afterClosed().subscribe((createdUserRequest: CreateUserRequest | undefined) => {
+      if (createdUserRequest) {
 
-  private createUserProcess(req: CreateUserRequest) {
-    this.adminApi.createUser(req).subscribe({
-      next: () => {
+        this.snackBar.open(`User ${createdUserRequest.email} created!`, 'OK', {
+          duration: 3000,
+          panelClass: 'snack-success'
+        });
+
         if (this.authService.hasRole('Admin') && !this.authService.hasRole('Manager')) {
-          this.autoAssignToMyCompany(req.email);
+          this.autoAssignToMyCompany(createdUserRequest.email);
         } else {
           this.loadUsers();
         }
@@ -160,9 +161,22 @@ export class AdminPage extends BaseComponent implements OnInit {
 
     if (!isManager && !isAdmin) return;
 
-    if(confirm(`Biztosan törölni szeretnéd: ${user.name}?`)) {
-      this.adminApi.deleteUser(user.id).subscribe(() => this.loadUsers());
-    }
+    // CONFIRM DIALOG HASZNÁLATA
+    const dialogRef = this.dialog.open(AdminConfirmDialog, {
+      width: '400px',
+      data: {
+        title: 'Delete User',
+        message: `Are you sure you want to delete user: ${user.name}?`,
+        confirmText: 'Delete',
+        confirmColor: 'warn'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.adminApi.deleteUser(user.id).subscribe(() => this.loadUsers());
+      }
+    });
   }
 
   openAssignCompanyDialog(user: AdminUserItem) {
@@ -193,9 +207,7 @@ export class AdminPage extends BaseComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((selectedCompanyName: string | null) => {
       if (selectedCompanyName !== undefined && selectedCompanyName !== '') {
-        if(selectedCompanyName == null) {
-          selectedCompanyName = '';
-        }
+        if(selectedCompanyName == null) selectedCompanyName = '';
         this.adminApi.assignCompanyToUser(user.id, selectedCompanyName).subscribe(() => {
           this.loadUsers();
           this.loadCompanies();
@@ -204,25 +216,50 @@ export class AdminPage extends BaseComponent implements OnInit {
     });
   }
 
-  // --- ORG ACTIONS (VISSZAÁLLÍTVA!) ---
+  // --- ORGANIZATION ACTIONS (Prompt + Confirm Dialogs) ---
 
   openAddOrgDialog() {
     if (!this.authService.hasRole('Manager')) return;
-    const name = prompt("Add meg az új szervezet nevét:");
-    if (name) {
-      this.adminApi.createCompany(name).subscribe(() => this.loadCompanies());
-    }
+
+    // PROMPT DIALOG HASZNÁLATA
+    const dialogRef = this.dialog.open(AdminPromptDialog, {
+      width: '400px',
+      data: {
+        title: 'Create Company',
+        label: 'Company Name',
+        confirmText: 'Create'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.adminApi.createCompany(result).subscribe(() => this.loadCompanies());
+      }
+    });
   }
 
   deleteOrg(org: AdminOrganizationItem) {
     if (!this.authService.hasRole('Manager')) return;
 
-    if(confirm(`Biztosan törölni szeretnéd a szervezetet: ${org.name}?`)) {
-      this.adminApi.deleteCompany(org.id).subscribe(() => {
-        this.loadCompanies();
-        this.loadUsers();
-      });
-    }
+    // CONFIRM DIALOG HASZNÁLATA
+    const dialogRef = this.dialog.open(AdminConfirmDialog, {
+      width: '400px',
+      data: {
+        title: 'Delete Company',
+        message: `Are you sure you want to delete company: ${org.name}? \nThis might affect users assigned to it.`,
+        confirmText: 'Delete',
+        confirmColor: 'warn'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.adminApi.deleteCompany(org.id).subscribe(() => {
+          this.loadCompanies();
+          this.loadUsers();
+        });
+      }
+    });
   }
 
   // --- DEVICE ASSIGNMENT ACTIONS ---
@@ -230,11 +267,9 @@ export class AdminPage extends BaseComponent implements OnInit {
   openAssignDeviceDialog(device: DeviceItem) {
     const isManager = this.authService.hasRole('Manager');
     const isAdmin = this.authService.hasRole('Admin');
-
     if (!isManager && !isAdmin) return;
 
     let companiesToShow: AdminOrganizationItem[] = [];
-
     if (isManager) {
       companiesToShow = this.organizations();
     } else if (isAdmin) {
@@ -252,14 +287,6 @@ export class AdminPage extends BaseComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((selectedCompany: string | null | undefined) => {
-
-      // --- ITT VOLT A HIBA: JAVÍTVA! ---
-      // A 'selectedCompany' lehet:
-      // - undefined: Mégse (X vagy backdrop)
-      // - '': Mégse gomb (mat-dialog-close attribute) <--- EZT MOST KISZŰRJÜK!
-      // - null: "Nincs (Individual)" opció (ez valid!)
-      // - 'Cég Neve': Valid cég
-
       if (selectedCompany !== undefined && selectedCompany !== '') {
         this.saveDeviceAssignment(device, selectedCompany);
       }
@@ -276,9 +303,64 @@ export class AdminPage extends BaseComponent implements OnInit {
       companyName: newCompany || undefined,
       description: ''
     };
-
     this.deviceApi.updateDevice(device.id, updateDto).subscribe(() => {
       this.loadAssignments();
     });
+  }
+}
+
+// --- HELPER COMPONENTS (Ideiglenes megoldásként itt, de valid) ---
+
+@Component({
+  selector: 'app-admin-confirm-dialog',
+  standalone: true,
+  imports: [MatDialogModule, MatButtonModule],
+  template: `
+    <h2 mat-dialog-title>{{ data.title }}</h2>
+    <mat-dialog-content>
+      <p style="white-space: pre-line;">{{ data.message }}</p>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Cancel</button>
+      <button mat-raised-button [color]="data.confirmColor || 'primary'" [mat-dialog-close]="true">
+        {{ data.confirmText || 'Confirm' }}
+      </button>
+    </mat-dialog-actions>
+  `
+})
+export class AdminConfirmDialog {
+  data = inject(MAT_DIALOG_DATA);
+}
+
+@Component({
+  selector: 'app-admin-prompt-dialog',
+  standalone: true,
+  imports: [MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, FormsModule],
+  template: `
+    <h2 mat-dialog-title>{{ data.title }}</h2>
+    <mat-dialog-content>
+      <mat-form-field appearance="outline" style="width: 100%; margin-top: 10px;">
+        <mat-label>{{ data.label }}</mat-label>
+        <input matInput [(ngModel)]="value" (keyup.enter)="onSave()" cdkFocusInitial>
+      </mat-form-field>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button (click)="onCancel()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="onSave()" [disabled]="!value">
+        {{ data.confirmText || 'OK' }}
+      </button>
+    </mat-dialog-actions>
+  `
+})
+export class AdminPromptDialog {
+  data = inject(MAT_DIALOG_DATA);
+  dialogRef = inject(MatDialogRef<AdminPromptDialog>);
+  value = '';
+
+  onSave() {
+    this.dialogRef.close(this.value);
+  }
+  onCancel() {
+    this.dialogRef.close();
   }
 }

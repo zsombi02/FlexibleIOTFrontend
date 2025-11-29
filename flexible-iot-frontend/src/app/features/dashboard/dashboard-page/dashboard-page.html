@@ -19,31 +19,78 @@
 
   <div class="dashboard-content">
 
-    <!-- KÖZÉPSŐ SZEKCIÓ (Osztott: Kis kártyák + Chart) -->
     <div class="middle-split-container">
 
-      <!-- 1. Balra a "System Info" kártyák -->
-      <div class="system-cards-col">
-        @for (info of systemInfoCards(); track info.title) {
-          <mat-card class="system-card">
-            <div class="sys-icon" [style.background-color]="info.color">
-              <mat-icon>{{ info.icon }}</mat-icon>
-            </div>
-            <div class="sys-data">
-              <span class="sys-val">{{ info.value }}</span>
-              <span class="sys-title">{{ info.title }}</span>
-            </div>
-          </mat-card>
-        }
-      </div>
+      <mat-card class="sim-control-panel">
+        <mat-card-header>
+        </mat-card-header>
 
-      <!-- 2. Jobbra a Chart (így már kisebb) -->
+        <mat-card-content>
+
+          <div class="demo-switch-container">
+            <mat-slide-toggle
+              color="primary"
+              [checked]="demoMode()"
+              (change)="toggleDemoMode($event.checked)">
+              Demo Mode
+            </mat-slide-toggle>
+          </div>
+
+          <hr class="divider">
+
+          <div class="control-group">
+            <span class="label">All Devices:</span>
+            <div class="btn-row">
+              <button mat-raised-button color="primary"
+                      (click)="onStartAllSim()"
+                      [disabled]="!demoMode()">
+                Start All
+              </button>
+              <button mat-raised-button color="warn"
+                      (click)="onStopAllSim()"
+                      [disabled]="!demoMode()">
+                Stop All
+              </button>
+            </div>
+          </div>
+
+          <hr class="divider">
+
+          <div class="control-group">
+            <span class="label">Selected Device:</span>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Choose a device</mat-label>
+              <mat-select [disabled]="!demoMode()"
+                          [ngModel]="selectedSimDeviceId()"
+                          (ngModelChange)="selectedSimDeviceId.set($event)">
+                @for (dev of myDevices(); track dev.id) {
+                  <mat-option [value]="dev.id">{{ dev.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <div class="btn-row">
+              <button mat-stroked-button color="primary"
+                      (click)="onStartDeviceSim()"
+                      [disabled]="!demoMode() || !selectedSimDeviceId()">
+                Start
+              </button>
+              <button mat-stroked-button color="warn"
+                      (click)="onStopDeviceSim()"
+                      [disabled]="!demoMode() || !selectedSimDeviceId()">
+                Stop
+              </button>
+            </div>
+          </div>
+
+        </mat-card-content>
+      </mat-card>
+
       <mat-card class="chart-panel">
-
         <mat-tab-group [selectedIndex]="0" (selectedIndexChange)="onTabChange($event)" animationDuration="0ms">
           @for (device of myDevices(); track device.id) {
             <mat-tab>
-              <!-- Itt a custom label a zöld pöttyel! -->
               <ng-template mat-tab-label>
                 {{ device.name }}
                 @if (isDeviceLive(device.id)) {
@@ -69,10 +116,9 @@
 
     </div>
 
-    <!-- JOBB OSZLOP: Élő Feed -->
     <mat-card class="feed-panel">
       <mat-card-header>
-        <mat-card-title>Élő napló</mat-card-title>
+        <mat-card-title>Live feed</mat-card-title>
       </mat-card-header>
       <mat-card-content class="feed-scroll-area">
         <ul class="feed-list">
@@ -85,7 +131,7 @@
               </div>
             </li>
           } @empty {
-            <li class="empty-feed">Csend honol...</li>
+            <li class="empty-feed">No data to show</li>
           }
         </ul>
       </mat-card-content>

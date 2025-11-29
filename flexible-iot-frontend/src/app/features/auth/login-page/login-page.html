@@ -1,31 +1,111 @@
 <div class="login-container">
   <mat-card>
     <mat-card-header>
-      <mat-card-title>Bejelentkezés</mat-card-title>
+      <mat-card-title>
+        @if (isLoginView()) { Login } @else { Register }
+      </mat-card-title>
     </mat-card-header>
+
     <mat-card-content>
-      <form (ngSubmit)="onSubmit()">
 
-        <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Email</mat-label>
-          <input matInput [(ngModel)]="model.email" name="email" required>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Jelszó</mat-label>
-          <input matInput type="password" [(ngModel)]="model.password" name="password" required>
-        </mat-form-field>
-
-        @if (errorMessage()) {
-          <div class="error-msg">{{ errorMessage() }}</div>
-        }
-
-        <div class="actions">
-          <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">
-            @if(isLoading()) { Belépés... } @else { Belépés }
-          </button>
+      <!-- SIKERES ÜZENET -->
+      @if (successMessage()) {
+        <div class="success-msg">
+          <mat-icon>check_circle</mat-icon> {{ successMessage() }}
         </div>
-      </form>
+      }
+
+      <!-- LOGIN FORM -->
+      @if (isLoginView()) {
+        <form (ngSubmit)="onLogin()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email / Username</mat-label>
+            <input matInput [(ngModel)]="loginModel.email" name="email" required>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Password</mat-label>
+            <input matInput type="password" [(ngModel)]="loginModel.password" name="password" required>
+          </mat-form-field>
+
+          @if (errorMessage()) {
+            <div class="error-msg">{{ errorMessage() }}</div>
+          }
+
+          <div class="actions">
+            <button mat-button type="button" (click)="toggleView()">Register</button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="isLoading()">
+              @if(isLoading()) { Logging in... } @else { Login }
+            </button>
+          </div>
+        </form>
+      }
+      @else {
+        <form (ngSubmit)="onRegister()">
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email / Username</mat-label>
+            <input matInput [(ngModel)]="registerModel.email" name="regEmail" required>
+          </mat-form-field>
+
+          <div class="password-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Password</mat-label>
+              <input matInput type="password" [(ngModel)]="registerModel.password" name="regPass" required>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Confirm Password</mat-label>
+              <input matInput type="password" [(ngModel)]="registerModel.confirmPassword" name="regPassConf" required>
+            </mat-form-field>
+          </div>
+
+          <!-- DEMO MODE TOGGLE -->
+          <div class="demo-toggle-container">
+            <mat-slide-toggle
+              color="accent"
+              [(ngModel)]="isDemoRegistration"
+              name="demoToggle">
+              Demo / Custom Registration
+            </mat-slide-toggle>
+          </div>
+
+          <!-- DEMO FIELDS -->
+          @if (isDemoRegistration()) {
+            <div class="demo-fields">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Role</mat-label>
+                <mat-select [(ngModel)]="registerModel.role" name="regRole">
+                  @for (role of availableRoles; track role) {
+                    <mat-option [value]="role">{{ role }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Company</mat-label>
+                <mat-select [(ngModel)]="registerModel.organizationName" name="regOrg" placeholder="Select Company">
+                  @for (org of organizations(); track org.id) {
+                    <mat-option [value]="org.name">{{ org.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          }
+
+          @if (errorMessage()) {
+            <div class="error-msg">{{ errorMessage() }}</div>
+          }
+
+          <div class="actions">
+            <button mat-button type="button" (click)="toggleView()">Login Instead</button>
+            <button mat-raised-button color="accent" type="submit" [disabled]="isLoading()">
+              @if(isLoading()) { Registering... } @else { Register }
+            </button>
+          </div>
+        </form>
+      }
+
     </mat-card-content>
   </mat-card>
 </div>

@@ -22,7 +22,9 @@ export class AuthRestApi {
     return this.api.post<any>('/Auth/Register', {
       email: model.email,
       password: model.password,
-      role: model.role
+      confirmPassword: model.confirmPassword,
+      role: model.role,
+      organizationName: model.organizationName
     }).pipe(map(() => {}));
   }
 }

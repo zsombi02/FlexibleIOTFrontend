@@ -7,10 +7,10 @@ export class RegisterModel {
   email: string = '';
   password: string = '';
   confirmPassword: string = '';
-  role: string = '';
+  role: string = 'Operator';
+  organizationName?: string;
 }
 
-// backend: { token, expiration }
 export interface TokenResponse {
   token: string;
   expiration: string;

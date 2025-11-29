@@ -1,10 +1,21 @@
 <mat-card class="widget-card">
   <div class="card-header">
-    <div class="header-title">Telemetria Nézőke</div>
-    <div class="header-meta" *ngIf="dataCount() > 0">{{ dataCount() }} adatpont</div>
-    <button mat-icon-button class="remove-btn" (click)="onRemove()">
-      <mat-icon>close</mat-icon>
-    </button>
+    <div class="header-title">Telemetry Viewer</div>
+    <div class="header-meta" *ngIf="dataCount() > 0">{{ dataCount() }} Data Points</div>
+
+    <div class="header-actions">
+      <!-- EXPAND GOMB -->
+      <button mat-icon-button (click)="toggleExpand()"
+              [matTooltip]="isExpanded() ? 'Collapse' : 'Expand'"
+              class="action-btn">
+        <mat-icon>{{ isExpanded() ? 'close_fullscreen' : 'open_in_full' }}</mat-icon>
+      </button>
+
+      <!-- REMOVE GOMB -->
+      <button mat-icon-button class="action-btn remove" (click)="onRemove()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
   </div>
 
   <div class="card-body">
@@ -14,7 +25,7 @@
 
       <!-- 1. ESZKÖZ -->
       <mat-form-field appearance="outline" class="dense-field">
-        <mat-label>Eszköz</mat-label>
+        <mat-label>Device</mat-label>
         <mat-select [(ngModel)]="config.deviceId" (selectionChange)="onDeviceChange()">
           @for (dev of devices; track dev.id) {
             <mat-option [value]="dev.id">{{ dev.name }}</mat-option>
@@ -24,7 +35,7 @@
 
       <!-- 2. TÍPUS -->
       <mat-form-field appearance="outline" class="dense-field">
-        <mat-label>Típus</mat-label>
+        <mat-label>Type</mat-label>
         <mat-select [(ngModel)]="config.chartType" (selectionChange)="onConfigChange()">
           @for (type of chartTypes; track type.value) {
             <mat-option [value]="type.value">{{ type.label }}</mat-option>
@@ -34,7 +45,7 @@
 
       <!-- 3. IDŐABLAK (PRESET) -->
       <mat-form-field appearance="outline" class="dense-field">
-        <mat-label>Időablak</mat-label>
+        <mat-label>Time Interval</mat-label>
         <mat-select [(ngModel)]="selectedRangeValue" (selectionChange)="onRangeChange($event.value)">
           @for (range of timeRanges; track range.value) {
             <mat-option [value]="range.value">{{ range.label }}</mat-option>
@@ -44,7 +55,7 @@
 
       <!-- 4. KEZDET (Csak ha Custom) -->
       <mat-form-field appearance="outline" class="dense-field">
-        <mat-label>Kezdet</mat-label>
+        <mat-label>Start</mat-label>
         <input matInput type="datetime-local" step="1"
                [disabled]="selectedRangeValue !== 0"
                [ngModel]="dateFromStr" (ngModelChange)="dateFromStr = $event">
@@ -52,7 +63,7 @@
 
       <!-- 5. VÉGE (Csak ha Custom) -->
       <mat-form-field appearance="outline" class="dense-field">
-        <mat-label>Vége</mat-label>
+        <mat-label>End</mat-label>
         <input matInput type="datetime-local" step="1"
                [disabled]="selectedRangeValue !== 0"
                [ngModel]="dateToStr" (ngModelChange)="dateToStr = $event">
@@ -65,19 +76,19 @@
       @if (isLoading()) {
         <div class="placeholder">
           <div class="spinner"></div>
-          <span>Adatok betöltése...</span>
+          <span>Loading Data...</span>
         </div>
       } @else if (config.deviceId && chartOption()) {
         <div echarts [options]="chartOption()!" class="echart"></div>
       } @else if (!config.deviceId) {
         <div class="placeholder info">
           <mat-icon>touch_app</mat-icon>
-          <span>Válassz egy eszközt a listából!</span>
+          <span>Select a Device!</span>
         </div>
       } @else {
         <div class="placeholder warning">
           <mat-icon>warning</mat-icon>
-          <span>Nincs adat ebben az időszakban.</span>
+          <span>No Data Available in the Interval.</span>
         </div>
       }
     </div>

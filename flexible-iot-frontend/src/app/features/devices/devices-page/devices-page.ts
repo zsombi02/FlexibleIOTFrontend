@@ -22,7 +22,7 @@ import {DevicesAddDeviceDialogComponent} from '../devices-dialogs/devices-add-de
   styleUrl: './devices-page.scss'
 })
 export class DevicesPage extends BaseComponent implements OnInit {
-  pageTitle = 'Eszközök';
+  pageTitle = 'Devices';
 
   private api = inject(DevicesService);
   protected auth = inject(AuthService);

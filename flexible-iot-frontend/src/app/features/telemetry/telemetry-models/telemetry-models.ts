@@ -4,9 +4,8 @@ export interface TelemetryPointDto {
   value: string;     // stringként jön, számmá kell konvertálni
 }
 
-// Ez a konfiguráció egy widget állapotát írja le
 export interface TelemetryWidgetConfig {
-  uuid: string;       // Egyedi azonosító a frontend listához
+  uuid: string;
   deviceId?: number;
   chartType: 'line' | 'bar' | 'area';
   dateFrom?: Date | null;
@@ -15,9 +14,9 @@ export interface TelemetryWidgetConfig {
 
 export interface TelemetryData {
   id: number;
-  name: string;       // eszköz azonosító
+  name: string;
   value: string;
-  type: string;       // pl. "number", "bool"
-  timeStamp: string;  // vagy Date-re mappeled, ha akarod
+  type: string;
+  timeStamp: string;
 }
 

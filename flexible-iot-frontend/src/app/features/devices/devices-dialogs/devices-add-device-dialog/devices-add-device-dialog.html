@@ -1,9 +1,9 @@
-<h2 mat-dialog-title>{{ isEdit ? 'Eszköz szerkesztése' : 'Új eszköz' }}</h2>
+<h2 mat-dialog-title>{{ isEdit ? 'Edit Device' : 'New Device' }}</h2>
 <mat-dialog-content>
   <div class="form-col">
 
     <mat-form-field appearance="outline">
-      <mat-label>Név</mat-label>
+      <mat-label>Name</mat-label>
       <input matInput [(ngModel)]="formData.name" required>
     </mat-form-field>
 
@@ -14,11 +14,11 @@
 
     <div class="row">
       <mat-form-field appearance="outline" class="half">
-        <mat-label>Típus</mat-label>
+        <mat-label>Type</mat-label>
         <input matInput [(ngModel)]="formData.type">
       </mat-form-field>
       <mat-form-field appearance="outline" class="half">
-        <mat-label>Időköz (mp)</mat-label>
+        <mat-label>Time Interval (seconds)</mat-label>
         <input matInput type="number" [(ngModel)]="formData.timeInterval" min="1">
       </mat-form-field>
     </div>
@@ -26,7 +26,7 @@
     <!-- CÉG VÁLASZTÓ -->
     @if (canSelectCompany) {
       <mat-form-field appearance="outline">
-        <mat-label>Cég</mat-label>
+        <mat-label>Company</mat-label>
         <mat-select [(ngModel)]="formData.companyName">
           <mat-option [value]="null">-- Individual --</mat-option>
           @for (org of availableCompanies; track org.id) {
@@ -36,9 +36,8 @@
       </mat-form-field>
     }
 
-    <!-- TULAJDONOS VÁLASZTÓ (Dropdown lett!) -->
     <mat-form-field appearance="outline">
-      <mat-label>Tulajdonos</mat-label>
+      <mat-label>Owner</mat-label>
 
       <!-- Ha van joga szerkeszteni, akkor Select -->
       @if (canEditOwner) {
@@ -58,8 +57,8 @@
   </div>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Mégse</button>
+  <button mat-button mat-dialog-close>Cancel</button>
   <!-- isValid() metódus hiányában a 'required' a template-ben nem tiltja le a gombot automatikusan Angularban Form nélkül,
        de most egyszerűsítve hagyjuk így -->
-  <button mat-raised-button color="primary" [mat-dialog-close]="formData">Mentés</button>
+  <button mat-raised-button color="primary" [mat-dialog-close]="formData">Save</button>
 </mat-dialog-actions>

@@ -18,15 +18,11 @@ header {
 }
 
 .widgets-grid {
-  flex: 1;
-  overflow-y: auto; /* Csak a grid görögjön */
   display: grid;
-
-  /* Reszponzív Grid: Minimum 500px széles kártyák, kitöltik a helyet */
-  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-  grid-auto-rows: min-content; /* A magasságot a tartalom adja */
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
   gap: 24px;
-  padding-bottom: 24px;
+  padding: 16px;
+  grid-auto-flow: dense;
 }
 
 .empty-dashboard {

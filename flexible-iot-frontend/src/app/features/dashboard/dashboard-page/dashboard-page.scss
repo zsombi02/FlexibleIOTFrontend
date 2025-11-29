@@ -190,3 +190,77 @@
   70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
 }
+
+.dashboard-content {
+  flex: 1;
+  display: grid;
+  // Balra az osztott rész, jobbra a Feed
+  grid-template-columns: 3fr 1fr;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.middle-split-container {
+  display: grid;
+  // Balra a Control Panel (kicsit szélesebb: 260px), jobbra a chart
+  grid-template-columns: 260px 1fr;
+  gap: 16px;
+  overflow: hidden;
+}
+
+/* --- ÚJ: SIMULATION CONTROL PANEL --- */
+.sim-control-panel {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+
+  .sim-title {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #333;
+    mat-icon { font-size: 20px; width: 20px; height: 20px; color: #555; }
+  }
+
+  .demo-switch-container {
+    padding: 10px 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .divider {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 16px 0;
+  }
+
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      button {
+        flex: 1; // Gombok töltsék ki a helyet
+        font-size: 13px;
+        padding: 0 8px;
+      }
+    }
+
+    .full-width {
+      width: 100%;
+      mat-form-field { width: 100%; }
+    }
+  }
+}

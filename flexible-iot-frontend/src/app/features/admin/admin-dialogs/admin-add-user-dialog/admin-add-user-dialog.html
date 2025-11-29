@@ -1,35 +1,51 @@
-<h2 mat-dialog-title>Új felhasználó</h2>
+<h2 mat-dialog-title>Add New User</h2>
+
 <mat-dialog-content>
-  <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+  <div class="form-container">
 
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Email</mat-label>
-      <input matInput [(ngModel)]="data.email">
+      <!-- 'email' attribútum levéve, hogy ne legyen piros sima névnél -->
+      <input matInput [(ngModel)]="data.email" required>
     </mat-form-field>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Jelszó</mat-label>
-      <input matInput type="password" [(ngModel)]="data.password">
-    </mat-form-field>
+    <div class="password-row">
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>Password</mat-label>
+        <input matInput type="password" [(ngModel)]="data.password" required>
+      </mat-form-field>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Jelszó megerősítése</mat-label>
-      <input matInput type="password" [(ngModel)]="data.confirmPassword">
-    </mat-form-field>
+      <mat-form-field appearance="outline" class="half-width">
+        <mat-label>Confirm</mat-label>
+        <input matInput type="password" [(ngModel)]="data.confirmPassword" required>
+      </mat-form-field>
+    </div>
 
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Role</mat-label>
       <mat-select [(ngModel)]="data.role">
-        <mat-option value="Operator">Operator</mat-option>
-        <mat-option value="Manager">Manager</mat-option>
-        <mat-option value="Admin">Admin</mat-option>
+        @for (role of availableRoles; track role) {
+          <mat-option [value]="role">{{ role }}</mat-option>
+        }
       </mat-select>
     </mat-form-field>
+
+    @if (errorMessage()) {
+      <div class="error-msg">
+        {{ errorMessage() }}
+      </div>
+    }
 
   </div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Mégse</button>
-  <button mat-raised-button color="primary" [mat-dialog-close]="data">Létrehozás</button>
+  <button mat-button (click)="onCancel()" [disabled]="isLoading()">Cancel</button>
+
+  <!-- JAVÍTVA: Nincs mat-dialog-close, helyette onSave() -->
+  <button mat-raised-button color="primary"
+          (click)="onSave()"
+          [disabled]="isLoading() || !data.email || !data.password">
+    @if(isLoading()) { Saving... } @else { Save }
+  </button>
 </mat-dialog-actions>

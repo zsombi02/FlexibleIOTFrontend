@@ -1,12 +1,12 @@
-<h2 mat-dialog-title>Cég hozzárendelése</h2>
+<h2 mat-dialog-title>Assign Company</h2>
 <mat-dialog-content>
-  <p>Felhasználó: <strong>{{ data.user.name }}</strong> ({{ data.user.email }})</p>
+  <p>User: <strong>{{ data.user.name }}</strong> ({{ data.user.email }})</p>
 
   <mat-form-field appearance="outline" style="width: 100%; margin-top: 10px;">
-    <mat-label>Válassz céget</mat-label>
+    <mat-label>Choose a Company</mat-label>
     <mat-select [(ngModel)]="selectedCompany">
 
-      <mat-option value="">— (Nincs cég / Individual) —</mat-option>
+      <mat-option value="">— (None / Individual) —</mat-option>
 
       @for (org of data.companies; track org.id) {
         <mat-option [value]="org.name">{{ org.name }}</mat-option>
@@ -16,6 +16,6 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Mégse</button>
-  <button mat-raised-button color="primary" [mat-dialog-close]="selectedCompany">Mentés</button>
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-raised-button color="primary" [mat-dialog-close]="selectedCompany">Save</button>
 </mat-dialog-actions>

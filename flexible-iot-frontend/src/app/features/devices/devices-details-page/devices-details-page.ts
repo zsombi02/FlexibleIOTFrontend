@@ -23,7 +23,7 @@ export class DevicesDetailsPage extends BaseComponent implements OnInit {
 
   private route = inject(ActivatedRoute);
   private api = inject(DevicesService);
-  private adminApi = inject(AdminService); // <--- Kell a user infókhoz
+  private adminApi = inject(AdminService);
   private telemetry = inject(SignalrTelemetryService);
 
   deviceId = signal<number>(0);
@@ -36,18 +36,23 @@ export class DevicesDetailsPage extends BaseComponent implements OnInit {
   lastUpdated = signal<string>('');
 
   chartOption = signal<EChartsOption | null>(null);
-  private history: {name: string, value: [string, number]}[] = [];
+
+  // Lokális history TÖRÖLVE, helyette a Service-t használjuk
 
   constructor() {
     super();
     effect(() => {
+      // Ha jön új adat a telemetria feeden keresztül
       const feed = this.telemetry.telemetryFeed();
       const currentId = this.deviceId();
 
       if (feed.length > 0 && currentId > 0) {
+        // Megnézzük, van-e releváns adat az aktuális eszközhöz
         const myData = feed.find(d => (d.id) === currentId);
         if (myData) {
-          this.updateLiveData(myData.value, myData.timeStamp);
+          this.updateLiveDataDisplay(myData.value, myData.timeStamp);
+          // Frissítjük a chartot (ami már a Service-ből olvassa az új history-t)
+          this.updateChart();
         }
       }
     });
@@ -63,21 +68,21 @@ export class DevicesDetailsPage extends BaseComponent implements OnInit {
   }
 
   loadDetails() {
-    // 1. Betöltjük az eszközt
     this.api.getDeviceById(this.deviceId()).subscribe(d => {
       this.device.set(d);
       this.pageTitle = d.name;
 
-      // 2. HA megvan az eszköz, megkeressük a tulajdonost a user listában
       if (d.ownerUserName) {
         this.loadOwnerDetails(d.ownerUserName);
       }
+
+      // Kezdő chart kirajzolása a már meglévő (Service-ben tárolt) adatokból!
+      // Így ha visszanavigálsz, nem üres a grafikon.
+      this.updateChart();
     });
   }
 
   private loadOwnerDetails(email: string) {
-    // Egyszerű megoldás: lekérjük a usereket és szűrünk.
-    // (Ideális esetben lenne getProfileByEmail végpont, de ez is jó)
     this.adminApi.getUsers().subscribe(users => {
       const owner = users.find(u => u.email === email || u.name === email);
       if (owner) {
@@ -86,23 +91,18 @@ export class DevicesDetailsPage extends BaseComponent implements OnInit {
     });
   }
 
-  private updateLiveData(value: any, time: string | Date) {
+  private updateLiveDataDisplay(value: any, time: string | Date) {
     const valStr = value.toString();
     const timeStr = new Date(time).toLocaleTimeString();
 
     this.lastValue.set(valStr);
     this.lastUpdated.set(timeStr);
-
-    this.history.push({
-      name: timeStr,
-      value: [timeStr, Number(value)]
-    });
-    if (this.history.length > 50) this.history.shift();
-
-    this.updateChart();
   }
 
   private updateChart() {
+    // Service-ből kérjük le az adatokat
+    const history = this.telemetry.getDeviceHistory(this.deviceId());
+
     this.chartOption.set({
       tooltip: { trigger: 'axis' },
       xAxis: { type: 'category', boundaryGap: false },
@@ -111,7 +111,8 @@ export class DevicesDetailsPage extends BaseComponent implements OnInit {
         type: 'line',
         smooth: true,
         areaStyle: { opacity: 0.3 },
-        data: [...this.history],
+        // Közvetlenül átadjuk a referenciát (vagy másolatot)
+        data: [...history],
         animation: false
       }],
       grid: { left: 40, right: 20, top: 20, bottom: 20 }
