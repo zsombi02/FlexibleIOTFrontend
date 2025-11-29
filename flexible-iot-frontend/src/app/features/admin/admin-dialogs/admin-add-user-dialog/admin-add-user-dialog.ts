@@ -68,7 +68,6 @@ export class AdminAddUserDialogComponent {
           this.errorMessage.set(err.message || 'Failed to create user.');
         }
 
-        // FONTOS: Nem hívunk close()-t, így a dialog nyitva marad!
       }
     });
   }

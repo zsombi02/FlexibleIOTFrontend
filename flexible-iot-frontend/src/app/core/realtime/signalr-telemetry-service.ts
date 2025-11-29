@@ -14,18 +14,18 @@ export interface ChartDataPoint {
 export class SignalrTelemetryService {
   private hubConnection?: signalR.HubConnection;
 
+  private readonly MAX_DEVICE_HISTORY = 50;
+  private readonly MAX_GLOBAL_FEED_LENGTH = 100;
+
   private _telemetryFeed = signal<TelemetryData[]>([]);
   public connectionStatus = signal<string>('Disconnected');
 
-  // KÖZPONTI HISTORY TÁROLÓ: Map<DeviceId, ArrayOfPoints>
-  // Ez éli túl a navigációt.
   private deviceHistoryMap = new Map<number, ChartDataPoint[]>();
 
   get telemetryFeed() {
     return this._telemetryFeed;
   }
 
-  // Publikus metódus, hogy a komponensek elkérhessék a history-t
   getDeviceHistory(deviceId: number): ChartDataPoint[] {
     return this.deviceHistoryMap.get(deviceId) || [];
   }
@@ -44,7 +44,6 @@ export class SignalrTelemetryService {
       .configureLogging(signalR.LogLevel.Information)
       .build();
 
-    // --- ESEMÉNYEK ---
 
     this.hubConnection.on('Connected', (connectionId: string) => {
       console.log('✅ SignalR connected. ID:', connectionId);
@@ -72,12 +71,13 @@ export class SignalrTelemetryService {
     // --- ADATFOGADÁS ---
 
     this.hubConnection.on('telemetryMessage', (data: TelemetryData) => {
-      // 1. Frissítjük a Feed Signal-t (ez triggereli az effect-eket a komponensekben)
+      // 1. Frissítjük a Feed Signal-t (ez a jobb oldali lista)
+      // Itt a slice biztosítja, hogy a globális lista ne nőjön túl nagyra
       this._telemetryFeed.update(current => {
-        return [data, ...current].slice(0, 500);
+        return [data, ...current].slice(0, this.MAX_GLOBAL_FEED_LENGTH);
       });
 
-      // 2. Frissítjük a központi History-t a grafikonokhoz
+      // 2. Frissítjük a központi History-t a grafikonokhoz (szigorú id-nkénti limit)
       this.addToCentralHistory(data);
     });
 
@@ -88,6 +88,8 @@ export class SignalrTelemetryService {
 
   private addToCentralHistory(data: TelemetryData) {
     const devId = data.id || 0;
+
+    // Ha még nincs ilyen eszköz a map-ben, létrehozzuk
     if (!this.deviceHistoryMap.has(devId)) {
       this.deviceHistoryMap.set(devId, []);
     }
@@ -95,14 +97,14 @@ export class SignalrTelemetryService {
     const history = this.deviceHistoryMap.get(devId)!;
     const timeStr = new Date(data.timeStamp).toLocaleTimeString();
 
-    // ECharts formátum
+    // Új pont hozzáadása
     history.push({
       name: timeStr,
       value: [timeStr, Number(data.value)]
     });
 
-    // Memória védelem: Max 50 pont / eszköz
-    if (history.length > 50) {
+    // MEMÓRIA VÉDELEM: Ha túlléptük a limitet, a legrégebbit (tömb eleje) kidobjuk
+    while (history.length > this.MAX_DEVICE_HISTORY) {
       history.shift();
     }
   }

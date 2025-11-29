@@ -1,65 +1,7 @@
-.app-layout {
+.app-container {
   display: flex;
   flex-direction: column;
-  height: 100vh; // Teljes magasság
-}
-
-.main-toolbar {
-  // Opcionális: kis árnyék, hogy elváljon a tartalomtól
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  z-index: 10;
-  position: relative;
-}
-
-.app-logo-text {
-  font-weight: bold;
-  font-size: 1.2rem;
-  margin-right: 24px; // Távolság a menüpontoktól
-  letter-spacing: 1px;
-}
-
-.nav-links {
-  display: flex;
-  gap: 8px; // Gombok közti távolság
-
-  a[mat-button] {
-    opacity: 0.85; // Kicsit halványabb, ha nem aktív
-
-    // Aktív menüpont stílusa
-    &.active-link {
-      background-color: rgba(255, 255, 255, 0.15);
-      opacity: 1;
-    }
-
-    // Mobil nézetben esetleg elrejthetjük a szöveget, ha kell
-    .nav-label {
-      margin-left: 6px;
-    }
-  }
-}
-
-.spacer {
-  flex: 1 1 auto;
-}
-
-.app-content {
-  flex: 1;          // Kitölti a maradék helyet
-  overflow: auto;   // Csak a tartalom görgessen, a fejléc maradjon
-  padding: 16px;
-  background-color: #f5f5f5; // Opcionális háttérszín a tartalomnak
-}
-
-/* --- USER INFO STÍLUS (A korábbi kérésedből) --- */
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-right: 16px;
-  font-size: 0.9rem;
-
-  background: rgba(255, 255, 255, 0.1);
-  padding: 4px 12px;
-  border-radius: 20px;
+  height: 100vh;
 }
 
 .role-chip {
@@ -78,4 +20,93 @@
   margin-left: 4px;
   white-space: nowrap;
   vertical-align: middle;
+}
+
+
+.main-toolbar {
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  z-index: 10;
+  position: relative;
+  flex-shrink: 0; // Ne nyomódjon össze
+}
+
+.app-logo-text {
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-right: 24px;
+  letter-spacing: 1px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 8px;
+
+  a[mat-button] {
+    opacity: 0.85;
+    &.active-link {
+      background-color: rgba(255, 255, 255, 0.15);
+      opacity: 1;
+    }
+    .nav-label {
+      margin-left: 6px;
+    }
+  }
+}
+
+.spacer { flex: 1 1 auto; }
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* --- SIDENAV & CONTENT --- */
+.app-sidenav-container {
+  flex: 1; // Kitölti a maradék helyet a toolbar alatt
+}
+
+.app-sidenav {
+  width: 250px; // Menü szélessége
+}
+
+.app-content {
+  padding: 16px;
+  background-color: #f5f5f5;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.active-list-item {
+  background-color: rgba(63, 81, 181, 0.1); // Halványkék háttér az aktív elemnek mobilon
+  color: #3f51b5;
+}
+
+
+/* --- RESPONSIVE LOGIKA (MEDIA QUERIES) --- */
+
+/* Alapállapot: Desktop (Minden látszik, Hamburger rejtve) */
+.mobile-menu-btn { display: none; }
+.desktop-nav { display: flex; }
+.desktop-only { display: inline; }
+
+/* Mobil nézet (Max 768px széles) */
+@media (max-width: 768px) {
+  .mobile-menu-btn { display: block; margin-right: 8px; } // Hamburger megjelenik
+  .desktop-nav { display: none; } // Felső menü eltűnik
+
+  .user-text.desktop-only { display: none; } // Név eltűnik, csak ikon marad
+
+  .app-content {
+    padding: 8px; // Kisebb padding mobilon
+  }
+
+  .app-logo-text {
+    font-size: 1rem; // Kisebb logo
+    margin-right: 8px;
+  }
 }

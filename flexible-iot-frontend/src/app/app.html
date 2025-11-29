@@ -1,11 +1,17 @@
-<div class="app-layout">
+<div class="app-container">
 
+  <!-- TOOLBAR (Mindig látszik, de a tartalma változik) -->
   <mat-toolbar color="primary" class="main-toolbar">
-    <!-- Opcionális LOGO vagy Cím -->
+
+    <!-- HAMBURGER GOMB (Csak mobilon látszik a CSS miatt) -->
+    <button mat-icon-button (click)="sidenav.toggle()" class="mobile-menu-btn">
+      <mat-icon>menu</mat-icon>
+    </button>
+
     <div class="app-logo-text">FlexibleIoT</div>
 
-    <!-- MENÜPONTOK (Bal oldalt, a logo után) -->
-    <nav class="nav-links">
+    <!-- DESKTOP MENÜ (Mobilon rejtve) -->
+    <nav class="nav-links desktop-nav">
       @for (item of navItems; track item.path) {
         <a mat-button
            [routerLink]="item.path"
@@ -17,37 +23,56 @@
       }
     </nav>
 
-    <!-- SPACER: Ez tolja a jobb oldalra a login részt -->
     <span class="spacer"></span>
 
-    <!-- JOBB OLDAL: User Info & Login (Változatlan a kérésed alapján) -->
+    <!-- User Info (Mobilon egyszerűsítjük) -->
     @if (isLoggedIn()) {
       <div class="user-info">
         <mat-icon>account_circle</mat-icon>
-
-        <span class="user-text">
+        <span class="user-text desktop-only">
           Hello, <strong>{{ authService.userName() }}</strong>
+          @let roles = authService.userRoles();
+          @if (roles.length > 0) {
+            <span class="role-chip">{{ roles[0] }}</span>
+          }
         </span>
-
-        @let roles = authService.userRoles();
-        @if (roles.length > 0) {
-          <span class="role-chip">{{ roles[0] }}</span>
-        }
       </div>
 
-      <button mat-button (click)="logout()">
-        <mat-icon>logout</mat-icon> Log Out
+      <button mat-icon-button (click)="logout()" title="Logout">
+        <mat-icon>logout</mat-icon>
       </button>
     } @else {
       <a mat-button routerLink="/login">
-        <mat-icon>login</mat-icon> Login
+        <mat-icon>login</mat-icon> <span class="desktop-only">Login</span>
       </a>
     }
   </mat-toolbar>
 
-  <!-- TARTALOM -->
-  <main class="app-content">
-    <router-outlet></router-outlet>
-  </main>
+  <!-- SIDENAV CONTAINER (Ez foglalja magába az egész tartalmat) -->
+  <mat-sidenav-container class="app-sidenav-container">
+
+    <!-- OLDALSÓ MENÜ (Mobilon jön be) -->
+    <mat-sidenav #sidenav mode="over" class="app-sidenav">
+      <mat-nav-list>
+        @for (item of navItems; track item.path) {
+          <a mat-list-item
+             [routerLink]="item.path"
+             (click)="sidenav.close()"
+             routerLinkActive="active-list-item">
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
+          </a>
+        }
+      </mat-nav-list>
+    </mat-sidenav>
+
+    <!-- FŐ TARTALOM -->
+    <mat-sidenav-content>
+      <main class="app-content">
+        <router-outlet></router-outlet>
+      </main>
+    </mat-sidenav-content>
+
+  </mat-sidenav-container>
 
 </div>

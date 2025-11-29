@@ -15,20 +15,24 @@
     <div class="row">
       <mat-form-field appearance="outline" class="half">
         <mat-label>Type</mat-label>
-        <input matInput [(ngModel)]="formData.type">
+        <mat-select [(ngModel)]="formData.type" required>
+          @for (type of deviceTypes; track type.value) {
+            <mat-option [value]="type.value">
+              {{ type.label }} <small style="color: #999">({{ type.unitHint }})</small>
+            </mat-option>
+          }
+        </mat-select>
       </mat-form-field>
+
       <mat-form-field appearance="outline" class="half">
         <mat-label>Time Interval (seconds)</mat-label>
         <input matInput type="number" [(ngModel)]="formData.timeInterval" min="1">
       </mat-form-field>
     </div>
 
-    <!-- TÖRÖLVE: CÉG VÁLASZTÓ -->
-
     <mat-form-field appearance="outline">
       <mat-label>Owner</mat-label>
 
-      <!-- Ha van joga szerkeszteni, akkor Select -->
       @if (canEditOwner) {
         <mat-select [(ngModel)]="formData.ownerUserName" required>
           @for (user of availableUsers; track user.id) {
@@ -41,7 +45,6 @@
         <input matInput [(ngModel)]="formData.ownerUserName" disabled>
       }
     </mat-form-field>
-
 
   </div>
 </mat-dialog-content>

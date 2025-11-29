@@ -1,30 +1,40 @@
+/* --- HEADER --- */
 .admin-header {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 
   h1 {
     margin: 0;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 500;
+    color: #333;
   }
 
   .subtitle {
     margin: 4px 0 0;
-    font-size: 13px;
-    color: rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+    color: #666;
   }
 }
 
+/* --- GRID LAYOUT --- */
 .admin-grid {
   display: grid;
+  /* Desktop: 2 oszlop */
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: auto auto;
-  gap: 16px;
+  gap: 24px;
+  align-items: start;
 }
 
 .admin-card {
   width: 100%;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
 }
 
+/* Teljes szélességű kártya (pl. Assignments) */
 .admin-card-full {
   grid-column: 1 / span 2;
 }
@@ -33,12 +43,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #f5f5f5;
+  background: white;
+  border-radius: 12px 12px 0 0;
 
-  button {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
+  span { font-size: 16px; font-weight: 600; color: #444; }
+}
+
+/* --- TABLE STYLES (DESKTOP DEFAULT) --- */
+mat-card-content {
+  padding: 0;
+  overflow: hidden; /* Desktopon nem kell scroll, ha kifér */
 }
 
 .admin-table {
@@ -46,19 +62,139 @@
   border-collapse: collapse;
   font-size: 13px;
 
-  th,
-  td {
-    padding: 6px 4px;
-    text-align: left;
+  thead {
+    background-color: #fafafa;
+    th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: #666;
+      border-bottom: 1px solid #eee;
+    }
   }
 
-  th {
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.6);
-    border-bottom: 1px solid #e5e7eb;
+  tbody {
+    tr {
+      border-bottom: 1px solid #f5f5f5;
+      &:last-child { border-bottom: none; }
+      &:hover { background-color: #f9faff; }
+    }
+
+    td {
+      padding: 10px 16px;
+      color: #333;
+      vertical-align: middle;
+    }
   }
 
-  tr + tr td {
-    border-top: 1px solid #f3f4f6;
+  .email-sub {
+    font-size: 11px;
+    color: #888;
+    margin-top: 2px;
   }
+}
+
+.actions-cell {
+  white-space: nowrap;
+  text-align: right;
+  width: 1%;
+}
+
+/* --- BADGES --- */
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.badge-company { background: #e3f2fd; color: #1565c0; }
+.badge-individual { background: #f5f5f5; color: #616161; }
+.badge-org { background: #fff3e0; color: #ef6c00; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+
+@media (max-width: 900px) {
+
+  /* 1. Grid összeomlasztása */
+  .admin-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .admin-card-full {
+    grid-column: 1;
+  }
+
+  .actions-cell {
+    width: 100%;
+    display: flex; /* Biztosítjuk, hogy flex maradjon */
+  }
+
+  /* 2. RESPONSIVE TABLE -> CARD VIEW TRANSFORMATION */
+  .responsive-table {
+    display: block; /* Táblázat viselkedés megszüntetése */
+    width: 100%;
+
+    thead {
+      display: none; /* Fejléc elrejtése */
+    }
+
+    tbody {
+      display: block;
+      width: 100%;
+    }
+
+    tr {
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin: 0 16px 16px 16px; /* Kártyák közötti térköz */
+      padding: 18px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+
+      &:last-child { margin-bottom: 16px; }
+    }
+
+    td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f9f9f9;
+      text-align: right; /* Értékek jobbra igazítva */
+
+      &:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+
+      &::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #777;
+        font-size: 12px;
+        text-transform: uppercase;
+        margin-right: 16px;
+        text-align: left;
+      }
+
+      &[data-label="Actions"] {
+        justify-content: flex-end;
+        margin-top: 8px;
+        border-top: 1px solid #eee;
+        padding-top: 8px;
+        width: 100%;
+
+        &::before { display: none; }
+      }
+    }
+  }
+
+  mat-card-content {
+    background: #fafafa; /* Kicsit elüt a fehér kártyáktól */
+    padding-top: 16px !important;
+  }
+
+
 }

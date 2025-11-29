@@ -125,8 +125,13 @@
           @for (item of liveFeedItems(); track item.id) {
             <li class="feed-item">
               <div class="feed-time">{{ item.time }}</div>
+
               <div class="feed-content">
-                <span class="feed-dev">{{ item.deviceName }}</span>
+                <div class="feed-text-group">
+                  <span class="feed-dev" [title]="item.deviceName">{{ item.deviceName }}</span>
+                  <span class="feed-metric-type">{{ item.metricName }}</span>
+                </div>
+
                 <span class="feed-val">{{ item.value }} {{ item.unit }}</span>
               </div>
             </li>

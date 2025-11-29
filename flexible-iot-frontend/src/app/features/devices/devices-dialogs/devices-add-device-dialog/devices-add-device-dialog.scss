@@ -1,14 +1,35 @@
+/* Desktop alapbeállítás */
 .form-col {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-width: 400px;
-  padding-top: 10px;
+  gap: 8px; /* Kisebb gap, hogy kompaktabb legyen */
+  min-width: 400px; /* Desktopon jó, ha széles */
+  padding-top: 8px;
 }
+
 .row {
   display: flex;
   gap: 12px;
 }
+
 .half {
-  flex: 1;
+  flex: 1; /* Fele-fele arány */
+}
+
+/* Javított Material Form Field térközök */
+mat-form-field {
+  width: 100%;
+}
+
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 600px) {
+  .form-col {
+    min-width: unset; /* Megszüntetjük a fix szélességet */
+    width: 100%;      /* Használja ki a rendelkezésre álló helyet */
+  }
+
+  .row {
+    flex-direction: column; /* Egymás alá tördeljük a mezőket */
+    gap: 0; /* A mat-form-field marginja elég */
+  }
 }

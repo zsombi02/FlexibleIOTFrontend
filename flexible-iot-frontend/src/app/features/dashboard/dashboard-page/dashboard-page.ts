@@ -274,10 +274,28 @@ export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
 
   private getUnitByType(type: string): string {
     const t = type?.toLowerCase() || '';
+
+    // Hőmérséklet
     if (t.includes('temp')) return '°C';
+    if (t.includes('heat')) return '°C';
+
+    // Páratartalom
     if (t.includes('hum')) return '%';
+
+    // Nyomás
     if (t.includes('press')) return 'bar';
+
+    // Elektromosság
     if (t.includes('volt')) return 'V';
-    return '';
+    if (t.includes('amp')) return 'A';
+    if (t.includes('watt') || t.includes('power')) return 'W';
+
+    // Egyéb
+    if (t.includes('speed') || t.includes('velocity')) return 'km/h';
+    if (t.includes('vibr')) return 'Hz';
+    if (t.includes('level')) return '%';
+    if (t.includes('count')) return 'db';
+
+    return 'unit';
   }
 }

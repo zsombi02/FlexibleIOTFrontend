@@ -1,21 +1,20 @@
 .details-container {
   padding: 24px;
-  /* Opcionális: limitáljuk a max szélességet ultranagy monitorokon, hogy ne essen szét */
   max-width: 1800px;
   margin: 0 auto;
 }
 
 header {
   margin-bottom: 24px;
-  h1 { margin: 0; font-size: 32px; font-weight: 600; } /* Nagyobb cím */
+  h1 { margin: 0; font-size: 32px; font-weight: 600; color: #333; }
   .subtitle-row {
-    display: flex; gap: 12px; margin-top: 12px; align-items: center;
+    display: flex; gap: 12px; margin-top: 12px; align-items: center; flex-wrap: wrap;
   }
 }
 
 .grid-layout {
   display: grid;
-  /* Szélesebb bal oszlop (300px -> 400px), hogy kényelmesen elférjenek az adatok */
+  /* Desktop alap: Bal 400px, Jobb maradék */
   grid-template-columns: 400px 1fr;
   gap: 24px;
   align-items: start;
@@ -27,11 +26,13 @@ header {
   gap: 24px;
 }
 
-/* KÁRTYÁK ÁLTALÁNOS STÍLUSA - Nagyobb padding, mélyebb árnyék */
+/* KÁRTYÁK */
 mat-card {
-  border-radius: 16px !important; /* Kerekebb sarkok */
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important; /* Elegánsabb árnyék */
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06) !important;
+  border: 1px solid rgba(0,0,0,0.05);
   overflow: hidden;
+  background: white;
 }
 
 /* INFO CARD */
@@ -39,70 +40,68 @@ mat-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0; /* Nagyobb térköz a sorok között */
+  padding: 16px 0;
   border-bottom: 1px solid #f0f0f0;
-  font-size: 15px; /* Nagyobb betűméret */
+  font-size: 15px;
 
   &:last-child { border-bottom: none; }
-
-  span { color: #555; font-weight: 500; }
-  strong { color: #222; }
+  span { color: #666; font-weight: 500; }
+  strong { color: #333; }
 }
 
+/* OWNER CARD */
 .owner-card {
   .owner-info { display: flex; flex-direction: column; gap: 8px; }
   .owner-name { font-weight: bold; font-size: 20px; color: #222; }
   .owner-email { color: #666; font-size: 15px; }
-  .owner-badges { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .owner-badges { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 }
 
-
+/* METRIC CARD */
 .metric-card {
   text-align: center;
-  padding: 30px 20px; /* Nagyobb belső tér */
+  padding: 30px 20px;
 
   h3 {
-    margin: 0 0 20px;
-    color: #666;
-    font-size: 16px;
+    margin: 0 0 16px;
+    color: #888;
+    font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     font-weight: 600;
   }
 
   .big-value {
-    font-size: 72px; /* Még nagyobb szám */
+    font-size: 72px;
     font-weight: 800;
     color: #3f51b5;
     line-height: 1;
+    margin-bottom: 8px;
+    /* Szép szövegárnyék a mélységért */
     text-shadow: 2px 2px 0px rgba(63, 81, 181, 0.1);
   }
 
   .timestamp {
-    font-size: 14px;
-    color: #999;
-    margin-top: 12px;
+    font-size: 13px;
+    color: #aaa;
     font-weight: 500;
   }
 }
 
 /* CHART CARD */
 .chart-card {
-  height: 650px;
+  height: 650px; /* Desktop magasság */
   display: flex;
   flex-direction: column;
 
   .chart-box {
     flex: 1;
     position: relative;
-    padding: 20px;
-    min-height: 0; /* Flexbox bugfix */
+    padding: 16px;
+    min-height: 0;
   }
 
-  .echart {
-    width: 100%;
-    height: 100%;
-  }
+  .echart { width: 100%; height: 100%; }
 
   .waiting {
     height: 100%;
@@ -112,65 +111,39 @@ mat-card {
     justify-content: center;
     color: #ccc;
     font-size: 18px;
-    gap: 16px;
   }
 }
 
-/* BADGES & CHIPS */
-.chip-id {
-  background: #f0f0f0;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: monospace;
-  font-weight: bold;
-  color: #444;
-}
+/* CHIPS & BADGES */
+.chip-id { background: #f0f0f0; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-family: monospace; font-weight: bold; color: #555; }
+.chip-company { background: #e3f2fd; color: #1565c0; padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+.chip-individual { background: #f5f5f5; color: #666; padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+.badge-role { background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 6px; font-size: 11px; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; }
+.badge-org { background: #fff3e0; color: #ef6c00; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+.mono { font-family: 'Roboto Mono', monospace; background: #f8f9fa; padding: 4px 8px; border-radius: 6px; font-size: 1.1em; color: #333; border: 1px solid #eee; word-break: break-all; }
 
-.chip-company {
-  background: #e3f2fd;
-  color: #1565c0;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 960px) {
+  .details-container {
+    padding: 16px;
+  }
 
-.chip-individual {
-  background: #f5f5f5;
-  color: #666;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
+  header h1 { font-size: 24px; }
 
-.badge-role {
-  background: #e8f5e9;
-  color: #2e7d32;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  text-transform: uppercase;
-  font-weight: bold;
-  letter-spacing: 0.5px;
-}
+  .grid-layout {
+    grid-template-columns: 1fr; /* Egymás alá kerülnek */
+    gap: 16px;
+  }
 
-.badge-org {
-  background: #fff3e0;
-  color: #ef6c00;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: bold;
-}
+  /* A bal oszlop elemei ne nyúljanak meg nagyon szélesre, ha nem muszáj,
+     de mobilon általában a teljes szélesség jó. */
 
-.mono {
-  font-family: 'Roboto Mono', monospace;
-  background: #f8f9fa;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 1.1em;
-  color: #333;
-  border: 1px solid #eee;
+  .chart-card {
+    height: 400px; /* Kisebb chart mobilon */
+    order: -1; /* Opcionális: Ha azt akarod, hogy a chart legyen legfelül mobilon */
+  }
+
+  .metric-card .big-value {
+    font-size: 56px; /* Kisebb betű mobilon */
+  }
 }

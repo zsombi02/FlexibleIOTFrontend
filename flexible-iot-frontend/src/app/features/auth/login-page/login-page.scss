@@ -2,15 +2,17 @@
   display: flex;
   justify-content: center;
   padding-top: 50px;
-  background-color: #f0f2f5; // Opcionális háttér
+  background-color: #f0f2f5;
   min-height: 100vh;
+  box-sizing: border-box; // Fontos, hogy a padding ne növelje a szélességet
 }
 
 .mat-card {
   width: 100%;
-  max-width: 450px; // Kicsit szélesebb a regisztráció miatt
+  max-width: 450px;
   padding: 20px;
   height: fit-content;
+  margin: 0 16px; // Hogy mobilon ne érjen a széléhez
 }
 
 .full-width {
@@ -21,58 +23,37 @@
 .password-row {
   display: flex;
   gap: 10px;
+
   .half-width {
     flex: 1;
   }
 }
 
-.demo-toggle-container {
-  margin: 10px 0 16px 0;
-  padding: 8px;
-  background: #fafafa;
-  border-radius: 4px;
-  border: 1px dashed #ccc;
+/* --- RESPONSIVE --- */
+@media (max-width: 600px) {
+  .login-container {
+    padding-top: 20px; // Kisebb felső hely mobilon
+  }
+
+  .password-row {
+    flex-direction: column; // Egymás alá kerüljenek a jelszó mezők
+    gap: 0; // A mat-form-field marginja intézi a távolságot
+  }
+
+  .actions {
+    flex-direction: column-reverse; // Gombok egymás alá, a Login legyen felül (opcionális)
+    gap: 12px;
+
+    button {
+      width: 100%; // Teljes szélességű gombok
+    }
+  }
 }
 
-.demo-fields {
-  animation: fadeIn 0.3s ease-in-out;
-  padding-top: 8px;
-  border-top: 1px solid #eee;
-}
-
-.actions {
-  display: flex;
-  justify-content: space-between; // Gombok széthúzása
-  align-items: center;
-  margin-top: 20px;
-}
-
-.error-msg {
-  color: #d32f2f;
-  margin-top: 16px;
-  font-size: 13px;
-  text-align: left;        // Balra igazítva olvashatóbb a lista
-  white-space: pre-line;   // FONTOS: Ez engedi a sortöréseket (\n)
-  line-height: 1.5;        // Kicsit szellősebb sorköz
-  background-color: #ffebee; // Halvány piros háttér a kiemeléshez
-  padding: 10px;
-  border-radius: 4px;
-  border: 1px solid #ffcdd2;
-}
-
-.success-msg {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+// ... többi stílus változatlan (error-msg, demo-fields stb) ...
+.demo-toggle-container { margin: 10px 0 16px 0; padding: 8px; background: #fafafa; border-radius: 4px; border: 1px dashed #ccc; }
+.demo-fields { animation: fadeIn 0.3s ease-in-out; padding-top: 8px; border-top: 1px solid #eee; }
+.actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+.error-msg { color: #d32f2f; margin-top: 16px; font-size: 13px; text-align: left; white-space: pre-line; line-height: 1.5; background-color: #ffebee; padding: 10px; border-radius: 4px; border: 1px solid #ffcdd2; }
+.success-msg { background-color: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 4px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }

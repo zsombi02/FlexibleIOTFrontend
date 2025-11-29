@@ -1,24 +1,14 @@
 :host {
   display: block;
+  /* Desktopon kitölti a grid cellát (ami fix 520px a page css miatt) */
   height: 100%;
-  min-height: 450px; /* Egy minimális magasság, hogy szépen mutasson */
-
-  /* Animáljuk a méretváltozást */
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* HA A GOMB AKTÍV (HostBinding adja rá ezt a class-t) */
+/* EXPANDED NÉZET */
 :host(.expanded-widget) {
-  /* CSS Grid: Foglaljon el 2 oszlopnyi helyet */
   grid-column: span 2;
-}
-
-/* Mobil nézetben (ha a képernyő kicsi), akkor hiába span 2,
-   ha csak 1 oszlop van. De ha tablet méret, akkor működik. */
-@media (max-width: 800px) {
-  :host(.expanded-widget) {
-    grid-column: span 1 !important; /* Mobilon ne erőltesse a duplát */
-  }
+  grid-row: span 1; /* 2x520px + gap lesz a magassága */
 }
 
 .widget-card {
@@ -27,35 +17,49 @@
   flex-direction: column;
   overflow: hidden;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   background: white;
+  border: 1px solid rgba(0,0,0,0.05);
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 16px;
-  background: #f5f7fa;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 12px 16px; /* Kicsit több padding */
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
 
-  .header-title { font-weight: 600; font-size: 15px; color: #333; }
-  .header-meta { font-size: 12px; color: #888; margin-right: 16px; margin-left: auto; }
-
-  .header-actions {
+  .header-title {
+    font-weight: 600;
+    font-size: 15px;
+    color: #444;
     display: flex;
-    gap: 4px;
+    align-items: center;
+    gap: 8px;
+    mat-icon { font-size: 20px; color: #3f51b5; }
   }
+
+  .header-meta {
+    font-size: 11px;
+    color: #999;
+    background: #f5f5f5;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin: 0 12px;
+  }
+
+  .header-actions { display: flex; gap: 2px; }
 
   .action-btn {
     width: 32px; height: 32px; line-height: 32px;
-
+    color: #777;
     mat-icon { font-size: 18px; }
-
-    &.remove {
-      color: #d32f2f;
-      &:hover { background-color: rgba(211, 47, 47, 0.1); }
-    }
+    &.remove:hover { color: #d32f2f; background: #ffebee; }
   }
 }
 
@@ -65,41 +69,35 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 0; /* Fontos flexbox bugfix, hogy ne lógjon túl a tartalom */
 }
 
-/* --- GRID LAYOUT --- */
+/* --- CONTROLS GRID --- */
 .controls-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 12px;
   align-items: start;
 }
 
 .dense-field {
   width: 100%;
-  ::ng-deep .mat-mdc-text-field-wrapper { padding-bottom: 0; }
-  ::ng-deep .mat-mdc-form-field-infix {
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
-    min-height: 40px !important;
-  }
+  font-size: 13px;
+  ::ng-deep .mat-mdc-text-field-wrapper { padding-bottom: 0; background-color: #f9fafb; }
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
 }
 
 /* --- CHART --- */
 .chart-container {
   flex: 1;
-  min-height: 250px; /* Chartnak is kell hely */
+  /* Min-heightet leveszem kicsit, hogy ne feszítse szét, ha sok a control */
+  min-height: 200px;
   position: relative;
-  background: #fff;
-  border: 1px solid #eee;
   border-radius: 8px;
   overflow: hidden;
 }
 
-.echart {
-  width: 100%;
-  height: 100%;
-}
+.echart { width: 100%; height: 100%; }
 
 .placeholder {
   height: 100%;
@@ -107,24 +105,39 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #999;
-  gap: 8px;
+  color: #bbb;
+  gap: 12px;
+  text-align: center;
 
-  mat-icon { font-size: 32px; width: 32px; height: 32px; opacity: 0.5; }
-  span { font-size: 14px; }
+  mat-icon { font-size: 48px; width: 48px; height: 48px; opacity: 0.3; }
+  span { font-size: 14px; font-weight: 500; }
 
-  &.info { color: #3f51b5; }
-  &.warning { color: #ff9800; }
-
+  &.info { color: #3f51b5; mat-icon { opacity: 0.5; } }
   .spinner {
     width: 24px; height: 24px;
-    border: 3px solid #e0e0e0;
+    border: 3px solid #eee;
     border-top-color: #3f51b5;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 0.8s linear infinite;
   }
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* --- RESPONSIVE OVERRIDES --- */
+@media (max-width: 600px) {
+  :host {
+    height: auto !important; /* Mobilon felülírjuk a fix magasságot */
+    min-height: 400px; /* Egy minimumot azért adunk neki */
+    margin-bottom: 16px;
+  }
+
+  :host(.expanded-widget) {
+    grid-column: span 1 !important;
+    grid-row: auto !important;
+  }
+
+  .controls-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }

@@ -5,7 +5,6 @@
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Email</mat-label>
-      <!-- 'email' attribútum levéve, hogy ne legyen piros sima névnél -->
       <input matInput [(ngModel)]="data.email" required>
     </mat-form-field>
 
@@ -42,7 +41,6 @@
 <mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()" [disabled]="isLoading()">Cancel</button>
 
-  <!-- JAVÍTVA: Nincs mat-dialog-close, helyette onSave() -->
   <button mat-raised-button color="primary"
           (click)="onSave()"
           [disabled]="isLoading() || !data.email || !data.password">

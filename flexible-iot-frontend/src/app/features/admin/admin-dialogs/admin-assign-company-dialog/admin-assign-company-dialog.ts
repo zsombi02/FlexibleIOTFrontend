@@ -24,7 +24,6 @@ export interface AssignCompanyDialogData {
   styleUrl: './admin-assign-company-dialog.scss'
 })
 export class AdminAssignCompanyDialogComponent {
-  // Itt kapjuk meg az adatokat a szülő komponenstől
   data = inject<AssignCompanyDialogData>(MAT_DIALOG_DATA);
 
   selectedCompany = '';

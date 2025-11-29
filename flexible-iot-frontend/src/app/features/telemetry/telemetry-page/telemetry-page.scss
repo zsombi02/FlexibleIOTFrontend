@@ -1,5 +1,12 @@
+:host {
+  display: block;
+  background-color: #f8f9fa;
+  min-height: 100%;
+}
+
 .page-container {
   padding: 24px;
+  /* Desktopon fix magasság a scrollhoz */
   height: calc(100vh - 64px);
   display: flex;
   flex-direction: column;
@@ -13,27 +20,79 @@ header {
   align-items: center;
   margin-bottom: 24px;
 
-  h1 { margin: 0; font-size: 28px; font-weight: 500; }
-  p { margin: 4px 0 0; color: #666; font-size: 14px; }
+  .header-left {
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 500;
+      color: #333;
+    }
+    p {
+      margin: 4px 0 0;
+      color: #666;
+      font-size: 14px;
+    }
+  }
 }
 
+/* --- GRID LAYOUT --- */
 .widgets-grid {
+  flex: 1;
+  overflow-y: auto; /* Belső görgetés */
+  padding-bottom: 24px;
+
   display: grid;
+  /* 1. JAVÍTÁS: Vissza 450px-re, hogy ne legyen túl keskeny */
   grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+
+  /* 2. JAVÍTÁS: Fix sormagasság desktopon! Ettől nem fog szétcsúszni 1000px-re */
+  grid-auto-rows: 520px;
+
   gap: 24px;
-  padding: 16px;
-  grid-auto-flow: dense;
+  grid-auto-flow: dense; /* Fontos az expanded widgethez */
 }
 
 .empty-dashboard {
-  grid-column: 1 / -1; /* Teljes szélesség */
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 400px;
-  color: #ccc;
+  color: #999;
+  background: white;
+  border-radius: 12px;
+  border: 2px dashed #e0e0e0;
+  margin-top: 20px;
 
-  mat-icon { font-size: 64px; width: 64px; height: 64px; margin-bottom: 16px; }
-  p { font-size: 18px; }
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+  p { font-size: 18px; font-weight: 500; }
+}
+
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 900px) { /* Kicsit emeltem a breakpointon */
+  .page-container {
+    height: auto;
+    overflow-y: visible;
+    padding: 16px;
+  }
+
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .widgets-grid {
+    overflow-y: visible;
+    grid-template-columns: 1fr; /* Mobilon 1 oszlop */
+    grid-auto-rows: auto; /* Mobilon engedjük, hogy akkora legyen, amekkora a tartalom! */
+    gap: 16px;
+  }
 }

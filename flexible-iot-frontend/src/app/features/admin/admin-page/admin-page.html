@@ -19,7 +19,8 @@
     </mat-card-title>
 
     <mat-card-content>
-      <table class="admin-table">
+      <!-- 'responsive-table' osztály hozzáadva -->
+      <table class="admin-table responsive-table">
         <thead>
         <tr>
           <th>Name/Email</th>
@@ -34,15 +35,18 @@
         <tbody>
           @for (user of users(); track user.id) {
             <tr>
-              <td>{{ user.name }}</td>
-              <td>
+              <!-- data-label attribútumok a mobil nézethez -->
+              <td data-label="Name/Email">
+                <strong>{{ user.name }}</strong>
+              </td>
+              <td data-label="Type">
                 <span [class]="'badge badge-' + user.type">{{ user.type }}</span>
               </td>
-              <td>{{ user.organizationName || '—' }}</td>
-              <td>{{ user.role }}</td>
+              <td data-label="Organization">{{ user.organizationName || '—' }}</td>
+              <td data-label="Role">{{ user.role }}</td>
 
               @if (!authService.hasRole('Operator')) {
-                <td class="actions-cell">
+                <td class="actions-cell" data-label="Actions">
                   <button mat-icon-button (click)="openAssignCompanyDialog(user)" title="Assign/Unassign Company">
                     <mat-icon>business</mat-icon>
                   </button>
@@ -75,7 +79,7 @@
       </mat-card-title>
 
       <mat-card-content>
-        <table class="admin-table">
+        <table class="admin-table responsive-table">
           <thead>
           <tr>
             <th>Name</th>
@@ -87,10 +91,10 @@
           <tbody>
             @for (org of organizations(); track org.id) {
               <tr>
-                <td>{{ org.name }}</td>
+                <td data-label="Name"><strong>{{ org.name }}</strong></td>
 
                 @if (authService.hasRole('Manager')) {
-                  <td class="actions-cell">
+                  <td class="actions-cell" data-label="Actions">
                     <button mat-icon-button color="warn" (click)="deleteOrg(org)">
                       <mat-icon>delete</mat-icon>
                     </button>
@@ -108,11 +112,10 @@
     <mat-card class="admin-card admin-card-full">
       <mat-card-title class="card-header">
         <span>Assignments (Devices)</span>
-        <!-- Itt nincs "Add", mert az a Devices oldalon van -->
       </mat-card-title>
 
       <mat-card-content>
-        <table class="admin-table">
+        <table class="admin-table responsive-table">
           <thead>
           <tr>
             <th>Device</th>
@@ -124,26 +127,25 @@
           <tbody>
             @for (dev of assignments(); track dev.id) {
               <tr>
-                <td>{{ dev.name }}</td>
-                <td>{{ dev.ownerUserName }}</td>
-                <td>
-                  <!-- Szép badge a cégnek -->
+                <td data-label="Device"><strong>{{ dev.name }}</strong></td>
+                <td data-label="Owner">{{ dev.ownerUserName }}</td>
+                <td data-label="Company">
                   @if(dev.company) {
                     <span class="badge-org">{{ dev.company }}</span>
                   } @else {
                     <span style="color: #999; font-style: italic;">— Individual —</span>
                   }
                 </td>
-                <td class="actions-cell">
+                <td class="actions-cell" data-label="Actions">
                   <button mat-icon-button (click)="openAssignDeviceDialog(dev)" title="Change Company">
-                    <mat-icon>business</mat-icon> <!-- Cég ikon a váltáshoz -->
+                    <mat-icon>business</mat-icon>
                   </button>
                 </td>
               </tr>
             } @empty {
               <tr>
                 <td colspan="4" style="text-align: center; color: #777; padding: 20px;">
-                 No available Devices
+                  No available Devices
                 </td>
               </tr>
             }

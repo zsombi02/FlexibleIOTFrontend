@@ -10,10 +10,16 @@ import {AuthService} from '../../../auth/auth-api/auth-service';
 import AdminService from '../../../admin/admin-api/admin-service';
 import {AdminUserItem} from '../../../admin/admin-models/admin-models';
 
-
 export interface DeviceDialogData {
   mode: 'create' | 'edit';
   device?: DeviceItem;
+}
+
+// Segéd interfész a típusokhoz
+interface DeviceTypeOption {
+  label: string;
+  value: string;
+  unitHint: string;
 }
 
 @Component({
@@ -32,25 +38,32 @@ export class DevicesAddDeviceDialogComponent implements OnInit {
 
   data = inject<DeviceDialogData>(MAT_DIALOG_DATA);
 
-  // Description törölve
   formData: CreateDeviceRequest = {
     name: '', topic: '', type: '', timeInterval: 60,
     companyName: null as any, ownerUserName: '', description: ''
   };
 
   isEdit = false;
-  // availableCompanies: AdminOrganizationItem[] = []; // TÖRÖLVE: Nem töltjük be a cégeket
   availableUsers: AdminUserItem[] = [];
-
-  // canSelectCompany = false; // TÖRÖLVE: Már nem lehet céget választani itt
   canEditOwner = false;
+
+  deviceTypes: DeviceTypeOption[] = [
+    { label: 'Temperature Sensor', value: 'Temperature Sensor', unitHint: '°C' },
+    { label: 'Humidity Sensor', value: 'Humidity Sensor', unitHint: '%' },
+    { label: 'Pressure Sensor', value: 'Pressure Sensor', unitHint: 'bar' },
+    { label: 'Voltage Sensor', value: 'Voltage Sensor', unitHint: 'V' },
+    { label: 'Current (Amperage)', value: 'Amperage Sensor', unitHint: 'A' },
+    { label: 'Power Meter', value: 'Power Meter', unitHint: 'W' },
+    { label: 'Speed Sensor', value: 'Speed Sensor', unitHint: 'km/h' },
+    { label: 'Vibration Sensor', value: 'Vibration Sensor', unitHint: 'Hz' },
+    { label: 'Tank Level', value: 'Tank Level', unitHint: '%' },
+    { label: 'Counter', value: 'Item Counter', unitHint: 'db' },
+    { label: 'Other / Generic', value: 'Generic Sensor', unitHint: '-' }
+  ];
 
   ngOnInit() {
     this.isEdit = this.data.mode === 'edit';
     this.setupPermissions();
-
-    // Adatok betöltése
-    // this.loadCompaniesIfNeeded(); // TÖRÖLVE
     this.loadUsersIfNeeded();
 
     if (this.isEdit && this.data.device) {
@@ -58,7 +71,7 @@ export class DevicesAddDeviceDialogComponent implements OnInit {
       this.formData = {
         name: d.name, topic: d.topic, type: d.type,
         timeInterval: d.timeInterval,
-        companyName: d.company || null as any, // Megtartjuk a meglévőt, ha van, de nem szerkeszthető
+        companyName: d.company || null as any,
         ownerUserName: d.ownerUserName,
         description: ''
       };
@@ -69,17 +82,15 @@ export class DevicesAddDeviceDialogComponent implements OnInit {
 
   private setupPermissions() {
     const isManager = this.auth.hasRole('Manager');
-    // Manager és Admin is választhat ownert (Admin csak a saját körében)
     this.canEditOwner = isManager || this.auth.hasRole('Admin');
   }
 
   private setDefaultsForCreate() {
     const myName = this.auth.userName() || '';
-
-    // Mindig nullázuk a company-t létrehozáskor
     this.formData.companyName = undefined;
 
-    // Ha Admin hoz létre, de nem választott mást (vagy Operator), akkor ő a tulaj
+    this.formData.type = this.deviceTypes[0].value;
+
     if (!this.formData.ownerUserName) {
       this.formData.ownerUserName = myName;
     }
@@ -88,14 +99,12 @@ export class DevicesAddDeviceDialogComponent implements OnInit {
   private loadUsersIfNeeded() {
     if (this.canEditOwner) {
       this.adminApi.getUsers().subscribe(users => {
-        // Szűrés: Admin csak a saját cége + individual usereket lássa
         if (this.auth.hasRole('Admin')) {
           const myComp = this.auth.currentUserCompany();
           this.availableUsers = users.filter(u =>
             u.organizationName === myComp || !u.organizationName
           );
         } else {
-          // Manager mindenkiből választhat
           this.availableUsers = users;
         }
       });

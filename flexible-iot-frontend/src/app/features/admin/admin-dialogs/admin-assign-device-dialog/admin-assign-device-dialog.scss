@@ -1,5 +1,23 @@
 .info-block {
-  margin-bottom: 12px;
-  p { margin: 4px 0; font-size: 14px; }
-  .subtitle { color: #666; font-size: 12px; font-style: italic; }
+  background: #f5f7fa;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  margin-bottom: 16px;
+
+  p { margin: 0 0 4px; color: #333; font-size: 14px; }
+  .subtitle { color: #666; font-size: 12px; margin-bottom: 0; }
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+mat-dialog-content {
+  min-width: 320px;
+
+  @media (max-width: 600px) {
+    min-width: unset;
+    width: 100%;
+  }
 }
