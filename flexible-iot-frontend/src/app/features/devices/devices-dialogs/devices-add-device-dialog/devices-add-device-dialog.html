@@ -23,18 +23,7 @@
       </mat-form-field>
     </div>
 
-    <!-- CÉG VÁLASZTÓ -->
-    @if (canSelectCompany) {
-      <mat-form-field appearance="outline">
-        <mat-label>Company</mat-label>
-        <mat-select [(ngModel)]="formData.companyName">
-          <mat-option [value]="null">-- Individual --</mat-option>
-          @for (org of availableCompanies; track org.id) {
-            <mat-option [value]="org.name">{{ org.name }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    }
+    <!-- TÖRÖLVE: CÉG VÁLASZTÓ -->
 
     <mat-form-field appearance="outline">
       <mat-label>Owner</mat-label>
@@ -58,7 +47,5 @@
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>Cancel</button>
-  <!-- isValid() metódus hiányában a 'required' a template-ben nem tiltja le a gombot automatikusan Angularban Form nélkül,
-       de most egyszerűsítve hagyjuk így -->
   <button mat-raised-button color="primary" [mat-dialog-close]="formData">Save</button>
 </mat-dialog-actions>

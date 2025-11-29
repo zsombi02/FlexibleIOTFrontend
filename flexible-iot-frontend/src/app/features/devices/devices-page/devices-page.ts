@@ -10,7 +10,7 @@ import {AuthService} from '../../auth/auth-api/auth-service';
 import {MatDialog} from '@angular/material/dialog';
 import {MatTableModule} from '@angular/material/table';
 import {DevicesAddDeviceDialogComponent} from '../devices-dialogs/devices-add-device-dialog/devices-add-device-dialog';
-
+import {DeviceAccessFacade} from '../../../core/base/devices-access-facade';
 
 @Component({
   selector: 'app-devices-page',
@@ -25,53 +25,34 @@ export class DevicesPage extends BaseComponent implements OnInit {
   pageTitle = 'Devices';
 
   private api = inject(DevicesService);
-  protected auth = inject(AuthService);
+  protected auth = inject(AuthService); // Marad, mert a 'canEdit' használja
   private dialog = inject(MatDialog);
 
-  devices = signal<DeviceItem[]>([]);
+  // ÚJ: Facade
+  protected facade = inject(DeviceAccessFacade);
+
+  // A devices signal mostantól a facade-ra mutat
+  devices = this.facade.devices;
+
   displayedColumns: string[] = ['id', 'name', 'type', 'company', 'owner', 'actions'];
 
   ngOnInit() {
-    this.loadDevices();
+    // RÉGI: this.loadDevices(); --> TÖRÖLVE
+
+    // ÚJ:
+    this.facade.loadDevices();
   }
 
-  loadDevices() {
-    this.api.getAllDevices().subscribe(all => {
-      this.filterDevices(all);
-    });
-  }
-
-  private filterDevices(all: DeviceItem[]) {
-    const isManager = this.auth.hasRole('Manager');
-    const isAdmin = this.auth.hasRole('Admin');
-    const myCompany = this.auth.currentUserCompany();
-    const myName = this.auth.userName();
-
-    let filtered: DeviceItem[] = [];
-
-    if (isManager) {
-      filtered = all;
-    } else if (isAdmin) {
-      filtered = all.filter(d =>
-        (myCompany && d.company === myCompany) ||
-        d.ownerUserName === myName
-      );
-    } else {
-      filtered = all.filter(d =>
-        d.ownerUserName === myName ||
-        (myCompany && d.company === myCompany)
-      );
-    }
-    this.devices.set(filtered);
-  }
+  // TÖRÖLVE: loadDevices() metódus (a szűrési logikával együtt)
+  // TÖRÖLVE: filterDevices() metódus
 
   openCreateDialog() {
-    // ITT A JAVÍTOTT NEVŰ KOMPONENS
     const dialogRef = this.dialog.open(DevicesAddDeviceDialogComponent, {
       width: '500px', data: { mode: 'create' }
     });
     dialogRef.afterClosed().subscribe((res: CreateDeviceRequest) => {
-      if (res) this.api.createDevice(res).subscribe(() => this.loadDevices());
+      // Siker esetén a facade-ot kérjük meg az újratöltésre
+      if (res) this.api.createDevice(res).subscribe(() => this.facade.loadDevices());
     });
   }
 
@@ -81,14 +62,14 @@ export class DevicesPage extends BaseComponent implements OnInit {
       width: '500px', data: { mode: 'edit', device: dev }
     });
     dialogRef.afterClosed().subscribe((res: CreateDeviceRequest) => {
-      if (res) this.api.updateDevice(dev.id, res).subscribe(() => this.loadDevices());
+      if (res) this.api.updateDevice(dev.id, res).subscribe(() => this.facade.loadDevices());
     });
   }
 
   deleteDevice(dev: DeviceItem, event: Event) {
     event.stopPropagation();
     if(confirm(`Törlöd a(z) ${dev.name} eszközt?`)) {
-      this.api.deleteDevice(dev.id).subscribe(() => this.loadDevices());
+      this.api.deleteDevice(dev.id).subscribe(() => this.facade.loadDevices());
     }
   }
 

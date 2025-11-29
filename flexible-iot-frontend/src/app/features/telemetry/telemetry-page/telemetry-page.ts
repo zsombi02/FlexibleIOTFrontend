@@ -3,10 +3,9 @@ import {CommonModule} from '@angular/common';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {AuthService} from '../../auth/auth-api/auth-service';
-import {DevicesService} from '../../devices/devices-api/devices-service';
-import {DeviceItem} from '../../devices/devices-models/devices-models';
 import {TelemetryWidgetConfig} from '../telemetry-models/telemetry-models';
 import {TelemetryWidget} from '../telemetry-widgets/telemetry-widget/telemetry-widget';
+import {DeviceAccessFacade} from '../../../core/base/devices-access-facade';
 
 @Component({
   selector: 'app-telemetry-page',
@@ -20,17 +19,20 @@ import {TelemetryWidget} from '../telemetry-widgets/telemetry-widget/telemetry-w
 })
 export class TelemetryPage implements OnInit {
   private auth = inject(AuthService);
-  private devicesApi = inject(DevicesService);
+  // private devicesApi = inject(DevicesService); // Törölve
+  private facade = inject(DeviceAccessFacade); // Új
 
-  // A felhasználó által látható eszközök
-  availableDevices = signal<DeviceItem[]>([]);
+  // A felhasználó által látható eszközök - a facade-ból jön
+  availableDevices = this.facade.devices;
 
   // A widgetek dinamikus listája
   widgets = signal<TelemetryWidgetConfig[]>([]);
 
   ngOnInit() {
-    this.loadDevices();
-    // Alapból adunk egy üres kártyát, hogy ne legyen üres a képernyő
+    // Betöltés indítása a facade-on keresztül
+    this.facade.loadDevices();
+
+    // Alapból adunk egy üres kártyát
     this.addWidget();
   }
 
@@ -38,8 +40,8 @@ export class TelemetryPage implements OnInit {
     this.widgets.update(list => [
       ...list,
       {
-        uuid: crypto.randomUUID(), // Egyedi ID a trackBy-hoz
-        chartType: 'area', // Alapértelmezett
+        uuid: crypto.randomUUID(),
+        chartType: 'area',
         dateFrom: null,
         dateTo: null
       }
@@ -50,31 +52,6 @@ export class TelemetryPage implements OnInit {
     this.widgets.update(list => list.filter(w => w.uuid !== uuid));
   }
 
-  // --- DEVICE BETÖLTÉS & SZŰRÉS (Ugyanaz a logika, mint máshol) ---
-  private loadDevices() {
-    this.devicesApi.getAllDevices().subscribe(all => {
-      this.filterDevices(all);
-    });
-  }
-
-  private filterDevices(all: DeviceItem[]) {
-    const isManager = this.auth.hasRole('Manager');
-    const isAdmin = this.auth.hasRole('Admin');
-    const myCompany = this.auth.currentUserCompany();
-    const myName = this.auth.userName();
-
-    let filtered: DeviceItem[] = [];
-
-    if (isManager) {
-      filtered = all;
-    } else if (isAdmin) {
-      filtered = all.filter(d =>
-        (myCompany && d.company === myCompany) || d.ownerUserName === myName
-      );
-    } else {
-      // Operator
-      filtered = all.filter(d => d.ownerUserName === myName);
-    }
-    this.availableDevices.set(filtered);
-  }
+  // TÖRÖLVE: private loadDevices()
+  // TÖRÖLVE: private filterDevices(...)
 }

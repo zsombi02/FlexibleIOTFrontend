@@ -17,6 +17,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {FormsModule} from '@angular/forms';
+import {DeviceAccessFacade} from '../../../core/base/devices-access-facade';
 
 @Component({
   selector: 'app-admin-page',
@@ -36,6 +37,7 @@ import {FormsModule} from '@angular/forms';
 export class AdminPage extends BaseComponent implements OnInit {
   private adminApi = inject(AdminService);
   private deviceApi = inject(DevicesService);
+  private deviceFacade = inject(DeviceAccessFacade); // ÚJ
   private dialog = inject(MatDialog);
   private router = inject(Router);
   protected authService = inject(AuthService);
@@ -45,7 +47,9 @@ export class AdminPage extends BaseComponent implements OnInit {
 
   users = signal<AdminUserItem[]>([]);
   organizations = signal<AdminOrganizationItem[]>([]);
-  assignments = signal<DeviceItem[]>([]);
+
+  // A "assignments" mostantól a facade eszközlistája
+  assignments = this.deviceFacade.devices;
 
   constructor() {
     super();
@@ -73,7 +77,9 @@ export class AdminPage extends BaseComponent implements OnInit {
 
     if (isManager || this.authService.hasRole('Admin')) {
       this.loadCompanies();
-      this.loadAssignments();
+      // RÉGI: this.loadAssignments(); --> TÖRÖLVE
+      // ÚJ:
+      this.deviceFacade.loadDevices();
     }
   }
 
@@ -99,25 +105,9 @@ export class AdminPage extends BaseComponent implements OnInit {
     this.adminApi.getCompanies().subscribe(res => this.organizations.set(res));
   }
 
-  loadAssignments() {
-    this.deviceApi.getAllDevices().subscribe(allDevices => {
-      if (this.authService.hasRole('Manager')) {
-        this.assignments.set(allDevices);
-        return;
-      }
-      if (this.authService.hasRole('Admin')) {
-        const myCompany = this.authService.currentUserCompany();
-        const filtered = allDevices.filter(d =>
-          d.company === myCompany || !d.company
-        );
-        this.assignments.set(filtered);
-        return;
-      }
-      this.assignments.set([]);
-    });
-  }
+  // TÖRÖLVE: loadAssignments() metódus (mert a facade végzi)
 
-  // --- USER ACTIONS ---
+  // ... (A User Actions és Organization Actions részek változatlanok) ...
 
   openAddUserDialog() {
     if (!this.authService.hasRole('Manager') && !this.authService.hasRole('Admin')) return;
@@ -161,7 +151,6 @@ export class AdminPage extends BaseComponent implements OnInit {
 
     if (!isManager && !isAdmin) return;
 
-    // CONFIRM DIALOG HASZNÁLATA
     const dialogRef = this.dialog.open(AdminConfirmDialog, {
       width: '400px',
       data: {
@@ -216,12 +205,9 @@ export class AdminPage extends BaseComponent implements OnInit {
     });
   }
 
-  // --- ORGANIZATION ACTIONS (Prompt + Confirm Dialogs) ---
-
   openAddOrgDialog() {
     if (!this.authService.hasRole('Manager')) return;
 
-    // PROMPT DIALOG HASZNÁLATA
     const dialogRef = this.dialog.open(AdminPromptDialog, {
       width: '400px',
       data: {
@@ -241,7 +227,6 @@ export class AdminPage extends BaseComponent implements OnInit {
   deleteOrg(org: AdminOrganizationItem) {
     if (!this.authService.hasRole('Manager')) return;
 
-    // CONFIRM DIALOG HASZNÁLATA
     const dialogRef = this.dialog.open(AdminConfirmDialog, {
       width: '400px',
       data: {
@@ -304,13 +289,13 @@ export class AdminPage extends BaseComponent implements OnInit {
       description: ''
     };
     this.deviceApi.updateDevice(device.id, updateDto).subscribe(() => {
-      this.loadAssignments();
+      // ÚJ: Itt is a facade-ot frissítjük az Assignment lista helyett
+      this.deviceFacade.loadDevices();
     });
   }
 }
 
-// --- HELPER COMPONENTS (Ideiglenes megoldásként itt, de valid) ---
-
+// ... Helper Dialogs (Maradnak a fájl végén, változatlanul) ...
 @Component({
   selector: 'app-admin-confirm-dialog',
   standalone: true,

@@ -8,10 +8,9 @@ import {FormsModule} from '@angular/forms';
 import {CreateDeviceRequest, DeviceItem} from '../../devices-models/devices-models';
 import {AuthService} from '../../../auth/auth-api/auth-service';
 import AdminService from '../../../admin/admin-api/admin-service';
-import {AdminOrganizationItem, AdminUserItem} from '../../../admin/admin-models/admin-models';
+import {AdminUserItem} from '../../../admin/admin-models/admin-models';
 
 
-// ITT A HIÁNYZÓ INTERFÉSZ DEFINÍCIÓ:
 export interface DeviceDialogData {
   mode: 'create' | 'edit';
   device?: DeviceItem;
@@ -40,10 +39,10 @@ export class DevicesAddDeviceDialogComponent implements OnInit {
   };
 
   isEdit = false;
-  availableCompanies: AdminOrganizationItem[] = [];
-  availableUsers: AdminUserItem[] = []; // Itt tároljuk a választható usereket
+  // availableCompanies: AdminOrganizationItem[] = []; // TÖRÖLVE: Nem töltjük be a cégeket
+  availableUsers: AdminUserItem[] = [];
 
-  canSelectCompany = false;
+  // canSelectCompany = false; // TÖRÖLVE: Már nem lehet céget választani itt
   canEditOwner = false;
 
   ngOnInit() {
@@ -51,15 +50,15 @@ export class DevicesAddDeviceDialogComponent implements OnInit {
     this.setupPermissions();
 
     // Adatok betöltése
-    this.loadCompaniesIfNeeded();
-    this.loadUsersIfNeeded(); // <--- EZT HÍVJUK MEG
+    // this.loadCompaniesIfNeeded(); // TÖRÖLVE
+    this.loadUsersIfNeeded();
 
     if (this.isEdit && this.data.device) {
       const d = this.data.device;
       this.formData = {
         name: d.name, topic: d.topic, type: d.type,
         timeInterval: d.timeInterval,
-        companyName: d.company || null as any,
+        companyName: d.company || null as any, // Megtartjuk a meglévőt, ha van, de nem szerkeszthető
         ownerUserName: d.ownerUserName,
         description: ''
       };
@@ -70,39 +69,19 @@ export class DevicesAddDeviceDialogComponent implements OnInit {
 
   private setupPermissions() {
     const isManager = this.auth.hasRole('Manager');
-    // Manager és Admin is választhat céget/ownert (Admin csak a saját körében)
-    this.canSelectCompany = isManager || this.auth.hasRole('Admin');
+    // Manager és Admin is választhat ownert (Admin csak a saját körében)
     this.canEditOwner = isManager || this.auth.hasRole('Admin');
   }
 
   private setDefaultsForCreate() {
     const myName = this.auth.userName() || '';
-    const myCompany = this.auth.currentUserCompany();
-    const isOperator = this.auth.hasRole('Operator');
 
-    // Ha Operator hoz létre, akkor fixen ő a tulaj és nincs cég
-    if (isOperator) {
-      this.formData.ownerUserName = myName;
-      this.formData.companyName = undefined;
-    }
+    // Mindig nullázuk a company-t létrehozáskor
+    this.formData.companyName = undefined;
 
-    // Ha Admin hoz létre, de nem választott mást, akkor ő a tulaj
+    // Ha Admin hoz létre, de nem választott mást (vagy Operator), akkor ő a tulaj
     if (!this.formData.ownerUserName) {
       this.formData.ownerUserName = myName;
-    }
-  }
-
-  private loadCompaniesIfNeeded() {
-    if (this.canSelectCompany) {
-      this.adminApi.getCompanies().subscribe(res => {
-        if (this.auth.hasRole('Manager')) {
-          this.availableCompanies = res;
-        } else {
-          // Admin csak a saját cégét látja
-          const myComp = this.auth.currentUserCompany();
-          this.availableCompanies = res.filter(c => c.name === myComp);
-        }
-      });
     }
   }
 

@@ -1,10 +1,9 @@
-import {Component, computed, effect, inject, OnDestroy, OnInit, signal} from '@angular/core';
+import {Component, effect, inject, OnDestroy, OnInit, signal, computed} from '@angular/core'; // computed importálva
 import {BaseComponent} from '../../../core/base/base';
 import {DashboardLiveFeedItem, DashboardStatCard} from '../dashboard-models/dashboard-models';
 import {MatCardModule} from '@angular/material/card';
-import {MatIconModule} from '@angular/material/icon'; // Ikonokhoz
+import {MatIconModule} from '@angular/material/icon';
 import {SignalrTelemetryService} from '../../../core/realtime/signalr-telemetry-service';
-import {DevicesService} from '../../devices/devices-api/devices-service';
 import {AuthService} from '../../auth/auth-api/auth-service';
 import {DeviceItem} from '../../devices/devices-models/devices-models';
 import {CommonModule} from '@angular/common';
@@ -19,8 +18,7 @@ import { MatInputModule } from '@angular/material/input';
 import {MatSlideToggle} from '@angular/material/slide-toggle';
 import {MatSelectModule} from '@angular/material/select';
 import {MatButton} from '@angular/material/button';
-
-
+import {DeviceAccessFacade} from '../../../core/base/devices-access-facade';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -45,15 +43,18 @@ export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
   pageTitle = 'Dashboard';
 
   private telemetry = inject(SignalrTelemetryService);
-  private deviceApi = inject(DevicesService);
+  // private deviceApi = inject(DevicesService); // TÖRÖLVE, már nem kell közvetlenül
   private authService = inject(AuthService);
   private simulationService = inject(SimulationService);
   private snackBar = inject(MatSnackBar);
 
+  private deviceFacade = inject(DeviceAccessFacade);
+
   connectionStatus = this.telemetry.connectionStatus;
 
-  // Adatok
-  myDevices = signal<DeviceItem[]>([]);
+  // ADATOK: A myDevices mostantól a facade-ra mutat
+  myDevices = this.deviceFacade.devices;
+
   liveFeedItems = signal<DashboardLiveFeedItem[]>([]);
   statCards = signal<DashboardStatCard[]>([]);
 
@@ -90,16 +91,14 @@ export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
         const latest = rawFeed[0];
         const devId = latest.id || 0;
 
-        // Live Dot frissítése
         this.updateLastSeen(devId);
 
-        // Chart frissítése (ha épp ez a tab van nyitva)
         if (this.selectedDeviceId() === devId) {
           this.updateChartForDevice(devId);
         }
       }
 
-      // 3. Feed generálás (jobb oldali sáv)
+      // 3. Feed generálás
       for (const t of rawFeed) {
         const dev = lookup.get(t.id || 0);
         if (dev) {
@@ -116,13 +115,21 @@ export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
       this.liveFeedItems.set(mappedFeed);
       this.updateStats();
     });
+
+    // ÚJ EFFECT: Ha betöltődtek az eszközök, kiválasztjuk az elsőt a charthoz
+    effect(() => {
+      const devices = this.myDevices();
+      if (devices.length > 0 && this.selectedDeviceId() === null) {
+        this.selectedDeviceId.set(devices[0].id);
+        this.updateChartForDevice(devices[0].id);
+      }
+    });
   }
 
   ngOnInit() {
     this.initData();
     this.telemetry.start().catch(err => console.error(err));
 
-    // Live Dot ticker
     this.refreshInterval = setInterval(() => {
       this.now.set(Date.now());
     }, 1000);
@@ -134,6 +141,7 @@ export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ... (Demo mód metódusok változatlanok: toggleDemoMode, onStartAllSim, stb.) ...
   toggleDemoMode(isActive: boolean) {
     this.demoMode.set(isActive);
     if (!isActive) {
@@ -184,10 +192,10 @@ export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
     if (!lastSeen) return false;
 
     const device = this.deviceLookup().get(devId);
-    let threshold = 10000; // Default 10 sec
+    let threshold = 10000;
 
     if (device?.timeInterval) {
-      threshold = (device.timeInterval * 1000) + 5000; // Interval + 5 sec buffer
+      threshold = (device.timeInterval * 1000) + 5000;
     }
 
     return (this.now() - lastSeen) < threshold;
@@ -202,16 +210,13 @@ export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
   }
 
   private initData() {
-    this.deviceApi.getAllDevices().subscribe({
-      next: (devices) => {
-        this.filterDevicesByRole(devices);
-        if (this.myDevices().length > 0) {
-          this.selectedDeviceId.set(this.myDevices()[0].id);
-          this.updateChartForDevice(this.myDevices()[0].id);
-        }
-      }
-    });
+    // RÉGI KÓD TÖRÖLVE: this.deviceApi.getAllDevices()...
+
+    // ÚJ KÓD: Csak megkérjük a Facade-ot, hogy töltsön
+    this.deviceFacade.loadDevices();
   }
+
+  // TÖRÖLVE: private filterDevicesByRole(...) - már a Facade végzi
 
   onTabChange(index: number) {
     const devices = this.myDevices();
@@ -223,16 +228,9 @@ export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
   }
 
   private updateChartForDevice(devId: number) {
-    // ITT A VÁLTOZÁS: A Service-ből kérjük el a history-t
     const data = this.telemetry.getDeviceHistory(devId);
-
     const device = this.deviceLookup().get(devId);
     if (!device) return;
-
-    if (data.length === 0) {
-      // Ha még nincs adat, nullázhatjuk, vagy hagyhatjuk a régit (opcionális)
-      // Most hagyjuk, hogy üres legyen
-    }
 
     this.chartOption.set({
       title: {
@@ -261,24 +259,10 @@ export class DashboardPage extends BaseComponent implements OnInit, OnDestroy {
           }
         },
         lineStyle: { width: 3, color: '#3f51b5' },
-        data: data // A Service-ből jövő adat
+        data: data
       }],
       animationDuration: 500
     });
-  }
-
-  private filterDevicesByRole(devices: DeviceItem[]) {
-    const isManager = this.authService.hasRole('Manager');
-    const isAdmin = this.authService.hasRole('Admin');
-    const myCompany = this.authService.currentUserCompany();
-    const myUserName = this.authService.userName();
-
-    let filtered: DeviceItem[] = [];
-    if (isManager) filtered = devices;
-    else if (isAdmin) filtered = devices.filter(d => (myCompany && d.company === myCompany) || d.ownerUserName === myUserName);
-    else filtered = devices.filter(d => d.ownerUserName === myUserName ||
-        (myCompany && d.company === myCompany));
-    this.myDevices.set(filtered);
   }
 
   private updateStats() {

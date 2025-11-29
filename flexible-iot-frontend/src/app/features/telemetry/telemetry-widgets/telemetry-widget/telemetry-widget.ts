@@ -15,6 +15,7 @@ import {TelemetryWidgetConfig} from '../../telemetry-models/telemetry-models';
 import {DeviceItem} from '../../../devices/devices-models/devices-models';
 import {TelemetryService} from '../../telemetry-api/telemetry-service';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {ChartStrategyFactory} from '../telemetry-strategies/chart-strategy';
 
 @Component({
   selector: 'app-telemetry-widget',
@@ -37,7 +38,6 @@ export class TelemetryWidget implements OnInit {
   isLoading = signal<boolean>(false);
   dataCount = signal<number>(0);
 
-  // ÚJ: Kiszélesítés állapota
   isExpanded = signal<boolean>(false);
 
   @HostBinding('class.expanded-widget')
@@ -74,12 +74,8 @@ export class TelemetryWidget implements OnInit {
     }
   }
 
-  // ÚJ: Toggle funkció
   toggleExpand() {
     this.isExpanded.update(v => !v);
-
-    // Tipp: Ha az ECharts nem méreteződne át azonnal, itt lehetne manuálisan triggerelni,
-    // de az ngx-echarts általában kezeli.
   }
 
   onDeviceChange() {
@@ -167,26 +163,11 @@ export class TelemetryWidget implements OnInit {
     const timestamps = data.map(d => new Date(d.timestamp).toLocaleString());
     const values = data.map(d => parseFloat(d.value));
 
-    const type = this.config.chartType === 'area' ? 'line' : this.config.chartType;
-    const areaStyle = this.config.chartType === 'area' ? { opacity: 0.3 } : undefined;
 
-    this.chartOption.set({
-      tooltip: { trigger: 'axis' },
-      grid: { left: 50, right: 20, top: 30, bottom: 30 },
-      xAxis: {
-        type: 'category',
-        data: timestamps,
-        boundaryGap: this.config.chartType === 'bar'
-      },
-      yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed' } } },
-      series: [{
-        data: values,
-        type: type as any,
-        smooth: true,
-        areaStyle: areaStyle,
-        itemStyle: { color: '#3f51b5' },
-        lineStyle: { width: 2 }
-      }]
-    });
+    const strategy = ChartStrategyFactory.getStrategy(this.config.chartType);
+
+    const option = strategy.getOption(timestamps, values, '#3f51b5');
+
+    this.chartOption.set(option);
   }
 }
