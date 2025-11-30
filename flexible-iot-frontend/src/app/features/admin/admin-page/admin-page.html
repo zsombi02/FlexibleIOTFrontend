@@ -51,7 +51,7 @@
                     <mat-icon>business</mat-icon>
                   </button>
 
-                  @if (authService.hasRole('Manager')) {
+                  @if (authService.hasRole('Manager') || authService.hasRole('Admin')) {
                     <button mat-icon-button color="warn" (click)="deleteUser(user)">
                       <mat-icon>delete</mat-icon>
                     </button>

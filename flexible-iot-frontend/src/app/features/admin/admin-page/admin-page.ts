@@ -144,11 +144,19 @@ export class AdminPage  implements OnInit {
 
     if (!isManager && !isAdmin) return;
 
+    const currentUserId = this.authService.currentUserId();
+    const isSelfDelete = user.id === currentUserId;
+
+    let confirmMessage = `Are you sure you want to delete user: ${user.name}?`;
+    if (isSelfDelete) {
+      confirmMessage = `WARNING: You are about to delete YOUR OWN account (${user.name})! \n\nIf you proceed, you will be logged out immediately and lose access.`;
+    }
+
     const dialogRef = this.dialog.open(AdminConfirmDialog, {
       width: '400px',
       data: {
-        title: 'Delete User',
-        message: `Are you sure you want to delete user: ${user.name}?`,
+        title: isSelfDelete ? 'Delete Your Account?' : 'Delete User',
+        message: confirmMessage,
         confirmText: 'Delete',
         confirmColor: 'warn'
       }
@@ -156,7 +164,24 @@ export class AdminPage  implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.adminApi.deleteUser(user.id).subscribe(() => this.loadUsers());
+        this.adminApi.deleteUser(user.id).subscribe({
+          next: () => {
+            if (isSelfDelete) {
+              // Ha saját magát törölte, kiléptetjük és átirányítjuk
+              this.snackBar.open('Account deleted. Logging out...', 'OK', { duration: 3000 });
+              this.authService.logout();
+              this.router.navigate(['/login']);
+            } else {
+              // Ha mást törölt, csak frissítjük a listát
+              this.snackBar.open('User deleted successfully', 'OK', { duration: 3000 });
+              this.loadUsers();
+            }
+          },
+          error: (err) => {
+            this.snackBar.open('Failed to delete user', 'Close', { panelClass: 'snack-error' });
+            console.error(err);
+          }
+        });
       }
     });
   }
@@ -188,7 +213,7 @@ export class AdminPage  implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((selectedCompanyName: string | null) => {
-      if (selectedCompanyName !== undefined && selectedCompanyName !== '') {
+      if (selectedCompanyName !== undefined) {
         if(selectedCompanyName == null) selectedCompanyName = '';
         this.adminApi.assignCompanyToUser(user.id, selectedCompanyName).subscribe(() => {
           this.loadUsers();

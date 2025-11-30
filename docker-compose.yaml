@@ -1,0 +1,11 @@
+services:
+  frontend:
+
+    build: .
+    
+    container_name: flexible-iot-frontend
+    
+    ports:
+      - "4200:80"
+      
+    restart: always

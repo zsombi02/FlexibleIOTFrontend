@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY flexible-iot-frontend/package*.json ./
 
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 COPY flexible-iot-frontend/. .
 

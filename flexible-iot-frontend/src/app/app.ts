@@ -34,8 +34,8 @@ class App {
   readonly navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
     { path: '/devices', label: 'Devices', icon: 'devices' },
-    { path: '/admin', label: 'Admin', icon: 'admin_panel_settings' },
     { path: '/telemetry', label: 'Telemetry', icon: 'timeline' },
+    { path: '/admin', label: 'Admin', icon: 'admin_panel_settings' },
   ];
 
   logout() {
